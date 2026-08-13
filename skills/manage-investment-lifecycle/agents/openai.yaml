@@ -1,0 +1,4 @@
+interface:
+  display_name: "Manage Investment Lifecycle"
+  short_description: "Maintain exact portfolio facts and lifelong investment decisions"
+  default_prompt: "Use $manage-investment-lifecycle to record my confirmed trade and update my investment lifecycle."

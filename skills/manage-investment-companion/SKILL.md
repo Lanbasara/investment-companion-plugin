@@ -7,6 +7,8 @@ description: 通过 Companion MCP 管理个人投资伴侣的主动系统。用�
 
 保持 Primary Investment Codex 为唯一指挥者。Companion 保存精确状态和文件句柄；哨骑、专家和园丁提供工作材料；由 Primary 解释意义、批准传播并决定是否联系用户。
 
+账户、流水、持仓、精确计算、Investor/Mandate/Attention Policy、Thesis、Decision、Execution、Review 和恢复包使用 `$manage-investment-lifecycle`。本 Skill 只管理主动运行、调查与系统恢复。
+
 ## 管理计划
 
 1. 修改前使用 `schedule_list` 或 `schedule_get` 读取真实状态，不根据聊天记忆猜 ID、版本或下次运行时间。
@@ -23,7 +25,7 @@ description: 通过 Companion MCP 管理个人投资伴侣的主动系统。用�
 2. `patrol`：围绕使命创建或定位 Case，写清 `BRIEF.md`，登记 Patrol，然后使用具名 `market_scout` 短命 Agent。不要 fork 完整对话；只给 Brief 和必要句柄。
 3. `review`：读取相关 Thesis/Case 的当前材料，按研究 Skill 调用必要专家。
 4. `maintenance`：按 [governance.md](references/governance.md) 委派 `knowledge_gardener`，审核认知性变更。
-5. 低价值结果记录后保持静默；材料性结果才更新 Case/Thesis 或向用户发送“为什么现在联系你”。
+5. 低价值结果记录后保持静默；材料性结果先用 `attention_decide` 执行生效 Policy，再更新认知或发送“为什么现在联系你”。
 6. 最后调用 `run_complete`。工具或来源失败时记录失败，不把派遣成功当作任务完成。
 
 ## 调查纪律
