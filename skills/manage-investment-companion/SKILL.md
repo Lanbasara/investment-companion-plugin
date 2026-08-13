@@ -19,7 +19,7 @@ description: 通过 Companion MCP 管理个人投资伴侣的主动系统。用�
 
 ## 处理到期运行
 
-收到 `[Investment Companion V2 scheduled run]` 时：
+收到 `[Investment Companion V3 scheduled run]` 时：
 
 1. 使用 `run_get` 和 `schedule_get` 核验 Run 与 Schedule。
 2. `patrol`：围绕使命创建或定位 Case，写清 `BRIEF.md`，登记 Patrol，然后使用具名 `market_scout` 短命 Agent。不要 fork 完整对话；只给 Brief 和必要句柄。
