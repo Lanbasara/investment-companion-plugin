@@ -1,0 +1,25 @@
+{
+  "name": "investment-companion",
+  "version": "0.1.0+codex.20260813083455",
+  "description": "Codex-native personal investment research and decision discipline.",
+  "author": {
+    "name": "ghk"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Investment Companion",
+    "shortDescription": "Codex \u539f\u751f\u7684\u4e2a\u4eba\u6295\u8d44\u7814\u7a76\u4e0e\u51b3\u7b56\u80fd\u529b",
+    "longDescription": "\u8ba9 Codex \u76f4\u63a5\u4f7f\u7528\u7ed3\u6784\u5316\u5e02\u573a\u6570\u636e\u3001\u5b98\u65b9\u8d44\u6599\u548c Web \u8bc1\u636e\uff0c\u5b8c\u6210\u9762\u5411\u4e2a\u4eba\u7ec4\u5408\u7684\u4e13\u4e1a\u7814\u7a76\u3001\u53cd\u8bc1\u4e0e\u6295\u8d44\u51b3\u7b56\u3002",
+    "developerName": "ghk",
+    "category": "Finance",
+    "capabilities": [
+      "Research",
+      "Analysis"
+    ],
+    "defaultPrompt": [
+      "\u7814\u7a76\u4e00\u4e2a\u6807\u7684\uff0c\u5e76\u8bf4\u660e\u5b83\u4e0e\u6211\u7684\u7ec4\u5408\u6709\u4ec0\u4e48\u5173\u7cfb\u3002",
+      "\u6bd4\u8f83\u4e70\u5165\u3001\u4e0d\u884c\u52a8\u548c\u5176\u4ed6\u5019\u9009\u65b9\u6848\u3002",
+      "\u5ba1\u67e5\u6211\u5f53\u524d\u6295\u8d44\u5224\u65ad\u4e2d\u6700\u53ef\u80fd\u9519\u5728\u54ea\u91cc\u3002"
+    ]
+  }
+}

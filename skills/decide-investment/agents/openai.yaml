@@ -1,0 +1,4 @@
+interface:
+  display_name: "投资决策"
+  short_description: "结合人生目标、组合约束和机会成本形成可执行的投资判断"
+  default_prompt: "Use $decide-investment to evaluate this investment decision in my portfolio context."

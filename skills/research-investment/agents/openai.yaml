@@ -1,0 +1,4 @@
+interface:
+  display_name: "投资研究"
+  short_description: "用多源证据完成专业可审计且面向个人组合的投资研究报告"
+  default_prompt: "Use $research-investment to research this investment question with current evidence."
