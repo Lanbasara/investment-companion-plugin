@@ -1,0 +1,6 @@
+interface:
+  display_name: "管理主动投资伴侣"
+  short_description: "用自然语言精确管理巡视、案件、事件、恢复与认知园丁"
+  default_prompt: "Use $manage-investment-companion to explain and precisely modify my active investment schedules."
+policy:
+  allow_implicit_invocation: true
