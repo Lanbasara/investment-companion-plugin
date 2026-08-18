@@ -1,0 +1,6 @@
+interface:
+  display_name: "经营个人投资系统"
+  short_description: "统一管理今日行动、机会漏斗、周月复盘与真实结果的个人投资经营闭环"
+  default_prompt: "Use $operate-investment-program to tell me what my investment system should do today."
+policy:
+  allow_implicit_invocation: true

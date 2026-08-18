@@ -4,7 +4,7 @@
 
 | 需求 | 首选 | 补充 | 权威边界 |
 |---|---|---|---|
-| 用户持仓、成本、现金、已执行交易 | `portfolio/current.md` 中的已确认快照；未来切换到 Companion MCP | 询问用户确认 | 聊天推断不能覆盖精确事实 |
+| 用户持仓、成本、现金、已执行交易 | Companion MCP 的 confirmed Ledger 与 `portfolio_state_as_of` | 券商账单与用户确认 | Markdown/聊天推断不能覆盖精确事实 |
 | 中国股票、ETF、基金、指数、财务、日频历史数据 | Tushare MCP | 官方网页或其他来源交叉核验 | 记录接口口径、日期和复权方式 |
 | 公告、基金合同、招募说明书、指数规则、监管政策 | 原始发布机构官网 | Tavily extract 仅负责正文提取 | 原始发布者高于聚合数据库 |
 | 少量当前事实或普通资料发现 | Codex Web | Tavily search | 优先落到原始 URL |

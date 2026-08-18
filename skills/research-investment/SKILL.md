@@ -19,6 +19,7 @@ description: 用结构化市场数据、官方原始资料和 Web 证据完成�
 4. 专业委派：简单事实由主 Codex 直接完成。涉及未来走势、估值、公司财务、投资 Thesis、标的比较、买卖/仓位判断或完整报告时，属于材料性研究，必须至少委派一个具名专业 Agent，不需要用户再次要求。多来源核验使用 `source_researcher`；财务、估值、历史统计或价格区间使用 `financial_analyst`；包含预测、推荐或高影响判断时，主 Codex 形成初步 Thesis 后必须使用 `thesis_critic` 寻找足以改变结论的反证。
 5. 独立综合：主 Codex 比较冲突、补足关键缺口并亲自撰写报告。不得平均辅助意见、按票数表决，或让“报告写手 Agent”拼装最终答案。
 6. 维护连续性：只有研究达到材料性门槛时，才更新 `theses/` 或 `library/`；在 `memory/now.md` 记录仍需观察的问题。不要把一次搜索过程当作长期记忆。
+7. 若研究属于 active InvestmentProgram 的机会，使用 `$operate-investment-program` 保存证据并推进或淘汰 Opportunity。研究报告不能自己跳过阶段、入 DecisionQueue 或生成个人买卖指令。
 
 若所需 Agent 调用失败或不可用，必须说明缺失的复核层并降低结论强度；不得静默退化为未经复核的完整报告。最终报告简要披露实际参与的专业 Agent、关键质疑以及主 Codex 对分歧的处理。
 

@@ -12,6 +12,7 @@ description: 维护个人投资事实账本、账户、资产、现金、持仓�
 - Ledger 只追加。错误使用 `ledger_reverse`，不覆盖或删除历史事实。
 - 缺少账户、数量、币种、时间或成交口径时先创建待确认草稿或询问，不补猜。
 - Simulation 永远不是成交。`trade_impact_simulate` 不改变真实持仓。
+- V5 DecisionQueue 的 accepted 只表示用户选择，不表示下单或成交；不得据此创建 confirmed Ledger。
 
 ## 记录金融事实
 
@@ -29,6 +30,7 @@ description: 维护个人投资事实账本、账户、资产、现金、持仓�
 3. 读取相关 Thesis Revision 或使用 `recovery_package_create` 组装有界上下文。
 4. 创建 Decision 后，用 `cognitive_revision_publish` 冻结 Investor Revision、Mandate Revision、Portfolio Calculation、Thesis Revision 和 Evidence Cutoff。
 5. 用户决定行动时创建 Execution；只有确认流水后才能设置 `partially_filled` 或 `filled`。
+6. 若存在 V5 Queue，成交确认后把 Review/Execution 结果交回 `$operate-investment-program`；Queue、Execution 和 Ledger 的 ID 必须保持可追溯但互不替代。
 
 ## 持续认知与复盘
 
@@ -36,6 +38,7 @@ description: 维护个人投资事实账本、账户、资产、现金、持仓�
 - 历史 Decision 永远引用具体 Revision，不能引用 `CURRENT.md`。
 - Review 先判断当时信息下的过程质量，再判断结果；不得因一次好运升级 Principle。
 - 跨会话先用 `recovery_package_create`，只读取返回的最少句柄，不扫描整个工作区。
+- Investor、Mandate 或 Attention 发生新 current Revision 时，提醒 `$operate-investment-program` 重审 active Program；不得让旧 Program 静默沿用过期个人约束。
 
 ## 注意力治理
 
