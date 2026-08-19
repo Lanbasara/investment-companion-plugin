@@ -21,7 +21,7 @@ description: 通过 Companion MCP 管理个人投资伴侣的主动系统与唤�
 
 收到 `[Investment Companion wake bridge/v1]` 或不含动态任务内容的静态 cron 唤醒时：
 
-1. 先确认 MCP 提供 `wake_claim`。可用时领取触发本会话的唯一 envelope；返回 null 时静默结束，不要自行搜索或领取另一个 Run。
+1. 先确认 MCP 提供 `wake_claim`。可用时领取触发本会话的唯一 envelope；返回 null 时最终严格输出 `NO_REPLY`，不要自行搜索或领取另一个 Run。该哨兵供桥接层抑制空白消息，不是用户报告。
 2. `scheduled_run`：使用 envelope 的 Run ID 和 Schedule ID 核验精确对象，再按下列任务类型处理。
 3. `research_ready`：读取精确 JobRun、Manifest 和 Event；核验证据/Gate 后决定静默、继续研究或交给 `$operate-investment-program` 推进 Opportunity。Job 产物不是用户行动建议。
    - 若 Manifest kind 为 `v5_canary_quant_scan`，先调用 `v5_quant_scan_get`。这是持续真实运行的量化研究输入，不存在 10–20 日试用期，也不等待月度复盘才工作。
@@ -45,11 +45,12 @@ description: 通过 Companion MCP 管理个人投资伴侣的主动系统与唤�
 处理 `scheduled_run`：
 
 1. 使用 `run_get` 和 `schedule_get` 核验 Run 与 Schedule。
-2. `patrol`：围绕使命创建或定位 Case，写清 `BRIEF.md`，登记 Patrol，然后使用具名 `market_scout` 短命 Agent。不要 fork 完整对话；只给 Brief 和必要句柄。
+2. `patrol`：围绕使命创建或定位 Case，写清 `BRIEF.md`，登记 Patrol，然后使用具名 `market_scout` 短命 Agent。不要 fork 完整对话；只给 Brief 和必要句柄。BRIEF 必须包含来源路由、截至时间和最低质量门槛；本地 Feed 为零只表示输入缺口，仍须完成契约规定的 Tushare、官方原始来源与受约束 Web 检查。
 3. `review`：读取相关 Thesis/Case 的当前材料，按研究 Skill 调用必要专家。
 4. `maintenance`：按 [governance.md](references/governance.md) 委派 `knowledge_gardener`，审核认知性变更。
-5. 低价值结果记录后可以保持静默，但当天收盘 Brief 仍须消费最新量化扫描；材料性线索先判断是否应进入 V5 Opportunity，而不是直接通知或荐股。月度量化 Review 明确标记 `report_required` 时不得静默。
-6. 用户输出统一交给 `$operate-investment-program` 汇总；主动消息仍先执行 `attention_decide`。
+5. `patrol_complete` 必须提交来源覆盖回执：`as_of`、`checked_sources`、`primary_sources`、`discovery_sources`、`material_findings`、`coverage_status`、`gaps`。只有达到 Schedule 的最低来源和原始来源门槛才可使用 `no_material_change`；否则必须使用 `insufficient_coverage`，不能把空输入解释成市场无变化。
+6. 低价值结果记录后可以保持静默，但当天收盘 Brief 仍须消费最新量化扫描和 Patrol 覆盖状态；材料性线索先判断是否应进入 V5 Opportunity，而不是直接通知或荐股。月度量化 Review 明确标记 `report_required` 时不得静默。
+7. 用户输出统一交给 `$operate-investment-program` 汇总；主动消息仍先执行 `attention_decide`。
 
 ## 调查纪律
 
@@ -70,3 +71,5 @@ description: 通过 Companion MCP 管理个人投资伴侣的主动系统与唤�
 用户询问死机、重启、遗漏或重复时，先调用 `system_status`、`run_list`、`schedule_history` 和 `event_list`。明确区分：已恢复、待重试、永久失败、数据源陈旧和未知。不得为了制造“正常”而手工篡改运行记录。
 
 用户询问量化系统是否运行时，优先调用 `v5_quant_research_status`；旧 MCP 没有该入口时才用兼容别名 `v5_quant_experiment_status`。回显持续运行状态、收盘数据/扫描/月度复盘三个 Schedule、最新扫描、研究触发、前向观察、最新月度结论和错误。明确说明没有试用到期或运行次数上限，不要只凭 Worker/timer 是否存在推断业务正常。
+
+用户询问主动研究质量、空响应、延迟或“有没有真的查资料”时，调用 `v5_research_quality_status`，分别说明来源覆盖、原始来源比例、调度延迟和投递积压；不得把 Run succeeded 等同于研究质量通过。
