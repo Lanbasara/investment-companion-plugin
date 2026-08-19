@@ -22,7 +22,7 @@ InvestmentProgram、Opportunity、DecisionQueue、Brief 和 Scorecard 是协调�
 
 ## 机会闭环
 
-1. 新线索先保存不可变来源，再以 `v5_opportunity_create` 登记 observed；这不是推荐。受控量化扫描只能提供一个不可变来源，不能批量把候选榜单机械拆成多个 Opportunity。
+1. 新线索先保存不可变来源，再以 `v5_opportunity_create` 登记 observed；这不是推荐。持续量化扫描提供一个不可变来源、候选变化和持续性触发，不能把整张榜单机械拆成多个 Opportunity；满足 `research_shortlist` 或出现其他重大证据时可立即开始完整研究，不等待月末。
 2. Primary 接受明确研究问题后才推进 researching，并使用 `$research-investment`。材料性研究继续遵守官方来源、结构化数据、反证和专业 Agent 复核。
 3. 只有 active Thesis 或合格 Strategy、至少两个冻结来源、明确 falsifier/counterevidence 后才推进 qualified。
 4. 只有当前数据、无重大未知项和 current issued Decision 才推进 actionable。涉及个人买卖、仓位或资产配置时必须使用 `$decide-investment`。
@@ -40,9 +40,9 @@ InvestmentProgram、Opportunity、DecisionQueue、Brief 和 Scorecard 是协调�
 
 ## 日、周、月输出
 
-- 日：只报告异常、有效行动或经过检查的 no-action；没有运行证据时写 review_required。
+- 日：读取当天最新量化扫描，将候选进入/退出、持续性、完整研究触发与持仓/Thesis 一起解释；只报告异常、有效行动或经过检查的 no-action。量化扫描不是行动，但不能因为前向样本尚少而从日报消失；没有运行证据时写 review_required。
 - 周：汇总 Program 进展、机会推进/淘汰、研究管道、组合风险和下周一件最重要的事。
-- 月：先调用 `v5_program_metrics_calculate` 生成过程指标 Calculation，再补充已有的合格投资结果 Calculation，最后生成 Scorecard；解释结果、过程质量、用户时间/Token 成本和需要修订/停止的部分。
+- 月：读取 `v5_continuous_quant_review` 并报告其确定性前向指标；再调用 `v5_program_metrics_calculate` 生成过程指标 Calculation，补充已有的合格投资结果 Calculation并生成 Scorecard；解释结果、过程质量、用户时间/Token 成本和需要修订/停止的部分。证据不足降低结论强度，不关闭每日功能。
 
 Scorecard 指标只提交 `name + calculation_id + outputs path`。不得提交模型填写的 value；计算器标出的收益、基准、时间或成本覆盖缺口必须原样披露，没有合格 Calculation 时发布 insufficient-evidence。
 
