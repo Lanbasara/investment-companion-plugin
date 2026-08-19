@@ -22,7 +22,7 @@ InvestmentProgram、Opportunity、DecisionQueue、Brief 和 Scorecard 是协调�
 
 ## 机会闭环
 
-1. 新线索先保存不可变来源，再以 `v5_opportunity_create` 登记 observed；这不是推荐。
+1. 新线索先保存不可变来源，再以 `v5_opportunity_create` 登记 observed；这不是推荐。受控量化扫描只能提供一个不可变来源，不能批量把候选榜单机械拆成多个 Opportunity。
 2. Primary 接受明确研究问题后才推进 researching，并使用 `$research-investment`。材料性研究继续遵守官方来源、结构化数据、反证和专业 Agent 复核。
 3. 只有 active Thesis 或合格 Strategy、至少两个冻结来源、明确 falsifier/counterevidence 后才推进 qualified。
 4. 只有当前数据、无重大未知项和 current issued Decision 才推进 actionable。涉及个人买卖、仓位或资产配置时必须使用 `$decide-investment`。
