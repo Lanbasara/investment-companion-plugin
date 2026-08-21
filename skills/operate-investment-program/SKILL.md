@@ -38,6 +38,14 @@ InvestmentProgram、Opportunity、DecisionQueue、Brief 和 Scorecard 是协调�
 - accepted 在有效期内仍是待处理行动；完成成交记录、不再执行或过期后才关闭/失效，不能用 no-action 覆盖。
 - 有效期、账本、价格、Mandate 或 Decision 变化时，旧行动卡失效；生成新 Decision/Spec/Queue，不修改旧卡。
 
+## V7 结果交付
+
+当工作由 Schedule/Run 触发且存在 `DeliveryRecord` 时，用户可读的结果必须先调用 `delivery_prepare` 冻结为 ResultEnvelope：明确结论、说明、最多三条依据、下一步、下次检查和稳定来源。`run_complete`、Brief ready、ActionCard 或系统完成卡片都不能代替这个步骤。
+
+- `report_required` 与 `action_required`：准备后等待 cc-connect 实际直送，使用 `delivery_get` 确认 `delivered`。
+- `digest_required`：准备后在一次收盘摘要中调用 `delivery_digest_send`；摘要成功送达后，其覆盖的全部 DeliveryRecord 才是 `delivered`。
+- Attention Policy 只能将发送延后至摘要；它不能把 required result 标为静默或省略结论。`delivery_status` 出现 `retry`、`failed` 或 overdue required result 时，先解释交付故障并修复，不把它伪装成已向用户汇报。
+
 ## 日、周、月输出
 
 - 日：读取当天最新量化扫描和主动 Patrol 来源覆盖回执，将候选进入/退出、持续性、完整研究触发与持仓/Thesis 一起解释；只报告异常、有效行动或经过检查的 no-action。量化扫描不是行动，但不能因为前向样本尚少而从日报消失；没有运行证据时写 review_required；来源覆盖不足时写 insufficient_coverage，禁止扩写成“市场无变化”。
