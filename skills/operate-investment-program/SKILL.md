@@ -1,61 +1,46 @@
 ---
 name: operate-investment-program
-description: 以 V5 投资经营闭环统一管理“今天做什么”、InvestmentProgram、机会漏斗、行动卡、日/周/月简报与结果记分卡。用户询问如何使用投资伴侣、今天是否行动、投资体系如何推进、候选如何进入或淘汰、周度投资委员会、月度成效，或希望系统持续改善投资过程时使用。
+description: 统一管理“今天做什么”、投资计划、机会漏斗、用户行动、日周月简报与结果记分。用户询问如何使用投资伴侣、今天是否行动、候选如何进入或淘汰、周度检查、月度成效，或希望系统持续改善投资过程时使用。
 ---
 
 # 经营个人投资系统
 
 ## 核心契约
 
-把复杂后台组织成一个用户能长期运行的投资经营闭环。先问“当前计划和证据允许做什么”，再调用研究、决策和生命周期能力；不要从搜索直接跳到股票推荐。
+用户第一层只看到：当前计划、研究、行动、真实结果和下次检查。不向用户暴露 Pipeline 版本、Manifest、Gate、Job 或数据库对象，除非它们发生故障并直接影响结论。
 
-InvestmentProgram、Opportunity、DecisionQueue、Brief 和 Scorecard 是协调层，不是第二套事实。持仓来自 confirmed Ledger，个人约束来自 confirmed Context，研究来自不可变证据，正式判断来自 Decision，真实成交始终由用户手工执行并确认。
+投资计划、研究机会、行动队列和简报是协调层，不是第二套事实。持仓只来自 confirmed Ledger，个人约束只来自 confirmed Context，真实成交始终由用户手工执行并确认。
 
 ## 每次进入
 
-1. 新会话或用户问“今天做什么”时，先确认 MCP 是否提供 `v5_today`，或用 `system_status` 核对 Schema。生产仍低于 Schema 5 / 工具不存在时，不得假装 V5 已启用：明确说明尚未切换，退回现有 `$manage-investment-lifecycle` 与 `$manage-investment-companion` 的只读恢复入口，不创建 V5 对象。
-2. V5 可用时调用 `v5_today`。不要扫描整个工作区，也不要根据聊天历史猜状态。
-3. `setup_required`：使用 `$manage-investment-lifecycle` 读取当前 Context、账户和组合，与用户共同起草 InvestmentProgram；展示目标、基准、风险、范围、节奏和停止条件。只有用户明确批准后调用 `v5_program_confirm`。
-4. `action`：逐项调用 `v5_action_card`，优先说明有效期、阻断条件、不行动方案和需要用户手工完成的下一步。
-5. `no_action`：说明这是“本轮经过检查后没有达到行动门槛”，不要扩写成市场判断。
-6. `review_required`：完成本期有边界的检查，资料不足时形成 insufficient-evidence 或待复核结论，不为了完成日报生成候选。
+1. 先调用 `investment_home`，不根据聊天历史猜测当前状态。
+2. `setup_required`：读取 `portfolio_context` 和 `investment_program_context`，与用户确认目标、基准、风险、范围、节奏和停止条件。使用 `investment_program_update(operation="create")` 产生草稿；只有用户批准后才 `operation="confirm"`。
+3. `action`：读取 `decision_context`，最多展示三个最重要行动，说明有效期、阻断条件、不行动和替代方案。
+4. `no_action`：说明这是“已检查但没有达到行动门槛”，不扩写成对市场的确定预测。
+5. `review_required`：完成有边界的检查；资料不足时使用 `insufficient_evidence`，不为了完成日报而生成候选。
 
-## 机会闭环
+## 研究到行动的闭环
 
-1. 新线索先保存不可变来源，再以 `v5_opportunity_create` 登记 observed；这不是推荐。持续量化扫描提供一个不可变来源、候选变化和持续性触发，不能把整张榜单机械拆成多个 Opportunity；满足 `research_shortlist` 或出现其他重大证据时可立即开始完整研究，不等待月末。
-2. Primary 接受明确研究问题后才推进 researching，并使用 `$research-investment`。材料性研究继续遵守官方来源、结构化数据、反证和专业 Agent 复核。
-3. 只有 active Thesis 或合格 Strategy、至少两个冻结来源、明确 falsifier/counterevidence 后才推进 qualified。
-4. 只有当前数据、无重大未知项和 current issued Decision 才推进 actionable。涉及个人买卖、仓位或资产配置时必须使用 `$decide-investment`。
-5. actionable 后用 `v5_decision_queue_enqueue` 入队。不得从 Opportunity 直接创建 Execution 或 Ledger。
+1. 新线索先用 `$research-investment` 冻结来源，再用 `investment_opportunity_update(operation="create")` 登记研究问题。这不是推荐。
+2. 使用 `research_context` 读取当前 ResearchRecord 和 Validation；历史扫描、预测和信号只是研究输入，不自动成为 StrategyVersion。
+3. 只有正式 Research Validation 达到 `eligible_for_decision` 后，才能把机会推进到 qualified/actionable。使用 `investment_opportunity_update(operation="transition")`，不用自报“证据等级”替代 Calculation。
+4. 涉及买卖、仓位或资产配置时切换到 `$decide-investment`。行动型 Decision 必须同时通过 Research Validation 和 Risk Gate。
+5. 只有 active actionable 机会才用 `investment_action_update(operation="enqueue")` 进入用户队列。队列不得直接创建 Execution 或 Ledger。
 
-详细字段、状态和禁止捷径见 [operating-contract.md](references/operating-contract.md)。
+详细状态与失败关闭见 [operating-contract.md](references/operating-contract.md)。
 
 ## 用户行动
 
-- 呈现行动卡前调用 `attention_decide`，其 evidence 必须引用对应 Queue/Brief。只有实际飞书送达并 `attention_mark_delivered` 后，才把对象标记 presented。
-- 用户可以接受、拒绝、稍后处理或要求补证据。稍后处理必须保存明确的 `snoozed_until`；记录真实选择，不劝用户为了闭环而接受。
-- 接受 Queue 不代表成交。有 ManualActionSpec 时重新验证；用户手工下单并报告真实结果后，切换到 `$manage-investment-lifecycle` 创建待确认 Ledger/Execution 记录。
-- accepted 在有效期内仍是待处理行动；完成成交记录、不再执行或过期后才关闭/失效，不能用 no-action 覆盖。
-- 有效期、账本、价格、Mandate 或 Decision 变化时，旧行动卡失效；生成新 Decision/Spec/Queue，不修改旧卡。
-
-## V7 结果交付
-
-当工作由 Schedule/Run 触发且存在 `DeliveryRecord` 时，用户可读的结果必须先调用 `delivery_prepare` 冻结为 ResultEnvelope：明确结论、说明、最多三条依据、下一步、下次检查和稳定来源。`run_complete`、Brief ready、ActionCard 或系统完成卡片都不能代替这个步骤。
-
-- `report_required` 与 `action_required`：准备后等待 cc-connect 实际直送，使用 `delivery_get` 确认 `delivered`。
-- `digest_required`：准备后在一次收盘摘要中调用 `delivery_digest_send`；摘要成功送达后，其覆盖的全部 DeliveryRecord 才是 `delivered`。
-- Attention Policy 只能将发送延后至摘要；它不能把 required result 标为静默或省略结论。`delivery_status` 出现 `retry`、`failed` 或 overdue required result 时，先解释交付故障并修复，不把它伪装成已向用户汇报。
+- 呈现、延后、接受、拒绝和关闭统一使用 `investment_action_update(operation="respond")`。用户的后续回复可以作为上一条消息已送达的证据；先用 `investment_delivery_update` 补记 Attention 送达，再记录队列响应。
+- 接受不代表下单或成交。用户真实手工操作后，使用 `$manage-investment-lifecycle` 记录订单、待确认成交和确认账本。
+- 有效期、账本、价格、Mandate 或 Decision 变化时，旧行动失效；生成新 Decision 和队列项，不修改旧记录。
 
 ## 日、周、月输出
 
-- 日：读取当天最新量化扫描和主动 Patrol 来源覆盖回执，将候选进入/退出、持续性、完整研究触发与持仓/Thesis 一起解释；只报告异常、有效行动或经过检查的 no-action。量化扫描不是行动，但不能因为前向样本尚少而从日报消失；没有运行证据时写 review_required；来源覆盖不足时写 insufficient_coverage，禁止扩写成“市场无变化”。
-- 周：汇总 Program 进展、机会推进/淘汰、研究管道、组合风险和下周一件最重要的事。
-- 月：读取 `v5_continuous_quant_review` 并报告其确定性前向指标；再调用 `v5_program_metrics_calculate` 生成过程指标 Calculation，补充已有的合格投资结果 Calculation并生成 Scorecard；解释结果、过程质量、用户时间/Token 成本和需要修订/停止的部分。证据不足降低结论强度，不关闭每日功能。
-
-Scorecard 指标只提交 `name + calculation_id + outputs path`。不得提交模型填写的 value；计算器标出的收益、基准、时间或成本覆盖缺口必须原样披露，没有合格 Calculation 时发布 insufficient-evidence。
+- 使用 `investment_brief_update(operation="publish")` 冻结日/周/月简报。`no_action` 只能在没有有效行动队列时成立；`action` 必须引用有效队列项。
+- 月度先用 `operation="metrics_calculate"` 冻结过程指标，再用 `investment_performance_calculate` 得到真实投资结果，最后用 `operation="scorecard_publish"` 发布可追溯记分卡。模型不能手填绩效数值。
+- 调度触发的用户结果使用 `investment_delivery_update(operation="prepare")`；摘要使用 `digest_send`。Run 成功不等于用户已收到结果。
 
 ## 输出给用户
 
-第一行直接给“行动 / 不行动 / 需要补什么”。最多展示当前最重要的三项。内部 Gate、Job、Snapshot 和 Worker 只在故障影响结论时解释，并翻译成人能理解的影响。
-
-不承诺高胜率、Alpha 或盈利。系统的进步以真实淘汰、可重放结果、风险控制和扣除时间/Token 后的净价值衡量。
+第一行直接给“行动 / 不行动 / 需要补什么”。最多展示当前最重要的三项。不承诺高胜率、Alpha 或盈利；系统的价值用真实结果、风险、成本和用户时间衡量。

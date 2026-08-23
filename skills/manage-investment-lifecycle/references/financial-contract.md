@@ -10,19 +10,12 @@
 
 ## 确认状态
 
-`draft / needs_confirmation` 不影响持仓；`confirmed` 进入状态重建；错误的 confirmed 记录由等额反向流水冲销，原记录标为 `reversed` 但仍参与历史重放。
+`draft / needs_confirmation` 不影响持仓；`confirmed` 进入状态重建。错误的 confirmed 记录使用 `investment_transaction_update(operation="reverse")` 产生不可变冲销流水，原记录仍保留在历史中。
 
 ## Decision 冻结
 
-Decision 发布至少引用：
-
-- `investor_revision_id`
-- `mandate_revision_id`
-- `portfolio_calculation_id`
-- `thesis_revision_ids`
-
-所有材料性计算同时写入 `calculation_ids`。缺少任一项时不得发布完整 Decision。
+`investment_decision_publish` 至少冻结 Investor Revision、Mandate Revision、Portfolio Calculation、Thesis Revision、知识截止时间、不行动方案、替代方案与失效条件。行动型 Decision 还必须引用通过的 Research Validation 和 Risk Gate Calculation。
 
 ## 数据质量
 
-行情质量可能是 `healthy / stale / partial / conflicting / unauthorized / failed / unknown`。陈旧、冲突或缺失必须成为 Warning；不得解释成没有变化。
+行情质量可以是 `healthy / stale / partial / conflicting / unauthorized / failed / unknown`。陈旧、冲突、缺失和无权限必须变成 Warning 或 Risk Gate 阻断，不得解释成“没有变化”。
