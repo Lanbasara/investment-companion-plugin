@@ -17,7 +17,8 @@ description: 维护个人投资事实账本、账户、资产、现金、持仓�
 
 1. 新会话或需要完整投资上下文时，先调用 `investment_home`。
 2. 涉及账户、现金、持仓、待确认成交或硬约束时，调用 `portfolio_context`。
-3. 涉及过去决定、执行和绩效时，分别使用 `decision_context` 和 `evaluation_context`。不从聊天或 Markdown current 视图推断精确事实。
+3. 必须读取 `truth_freshness` 和 `precision_boundary`：正文明确说出最近对账时间；状态为 `stale` 时只能称“账本持仓”，不得称当前真实持仓，不得给出依赖精确数量或现金的仓位建议，并请求当前账单、持仓截图或成交记录完成对账。
+4. 涉及过去决定、执行和绩效时，分别使用 `decision_context` 和 `evaluation_context`。不从聊天或 Markdown current 视图推断精确事实。
 
 ## 记录金融事实
 
