@@ -14,18 +14,19 @@ description: 统一管理“今天做什么”、投资计划、机会漏斗、�
 ## 每次进入
 
 1. 先调用 `investment_home`，不根据聊天历史猜测当前状态。
-2. `setup_required`：读取 `portfolio_context` 和 `investment_program_context`，与用户确认目标、基准、风险、范围、节奏和停止条件。使用 `investment_program_update(operation="create")` 产生草稿；只有用户批准后才 `operation="confirm"`。
-3. `action`：读取 `decision_context`，最多展示三个最重要行动，说明有效期、阻断条件、不行动和替代方案。
-4. `no_action`：说明这是“已检查但没有达到行动门槛”，不扩写成对市场的确定预测。
-5. `review_required`：完成有边界的检查；资料不足时使用 `insufficient_evidence`，不为了完成日报而生成候选。
+2. 读取返回的 `production_health`；只要关键运行版本、服务或研究流水线失败，结论必须是 `system_degraded`，不得写成 `no_action`。先报告故障、修复或触发恢复，再重新判断。
+3. `setup_required`：读取 `portfolio_context` 和 `investment_program_context`，与用户确认目标、基准、风险、范围、节奏和停止条件。使用 `investment_program_update(operation="create")` 产生草稿；只有用户批准后才 `operation="confirm"`。
+4. `action`：读取 `decision_context`，最多展示三个最重要行动，说明有效期、阻断条件、不行动和替代方案。
+5. `no_action`：说明这是“全部关键链路成功、已检查但没有达到行动门槛”，不扩写成对市场的确定预测。
 
 ## 研究到行动的闭环
 
 1. 新线索先用 `$research-investment` 冻结来源，再用 `investment_opportunity_update(operation="create")` 登记研究问题。这不是推荐。
 2. 使用 `research_context` 读取当前 ResearchRecord 和 Validation；历史扫描、预测和信号只是研究输入，不自动成为 StrategyVersion。
-3. 只有正式 Research Validation 达到 `eligible_for_decision` 后，才能把机会推进到 qualified/actionable。使用 `investment_opportunity_update(operation="transition")`，不用自报“证据等级”替代 Calculation。
-4. 涉及买卖、仓位或资产配置时切换到 `$decide-investment`。行动型 Decision 必须同时通过 Research Validation 和 Risk Gate。
-5. 只有 active actionable 机会才用 `investment_action_update(operation="enqueue")` 进入用户队列。队列不得直接创建 Execution 或 Ledger。
+3. 每个交易日必须处理最新的 `provisional_action` 和持续候选：选择“进入完整研究 / 明确淘汰 / 继续观察并给出期限”之一。不得仅抄录榜单后结束；至少把最有希望且资料可补齐的候选推进为 ResearchRecord 和正式 Validation。
+4. 只有正式 Research Validation 达到 `eligible_for_decision` 后，才能把机会推进到 qualified/actionable。使用 `investment_opportunity_update(operation="transition")`，不用自报“证据等级”替代 Calculation。
+5. 涉及买卖、仓位或资产配置时切换到 `$decide-investment`。行动型 Decision 必须同时通过 Research Validation 和 Risk Gate；小额探索也必须明确为受限仓位，不得绕过硬风控。
+6. 只有 active actionable 机会才用 `investment_action_update(operation="enqueue")` 进入用户队列。队列不得直接创建 Execution 或 Ledger。
 
 详细状态与失败关闭见 [operating-contract.md](references/operating-contract.md)。
 
@@ -37,7 +38,7 @@ description: 统一管理“今天做什么”、投资计划、机会漏斗、�
 
 ## 日、周、月输出
 
-- 使用 `investment_brief_update(operation="publish")` 冻结日/周/月简报。`no_action` 只能在没有有效行动队列时成立；`action` 必须引用有效队列项。
+- 使用 `investment_brief_update(operation="publish")` 冻结日/周/月简报。`no_action` 只有在 Production Doctor 全绿、当日研究产物新鲜且没有有效行动队列时成立；`action` 必须引用有效队列项。
 - 月度先用 `operation="metrics_calculate"` 冻结过程指标，再用 `investment_performance_calculate` 得到真实投资结果，最后用 `operation="scorecard_publish"` 发布可追溯记分卡。模型不能手填绩效数值。
 - 调度触发的用户结果使用 `investment_delivery_update(operation="prepare")`；摘要使用 `digest_send`。Run 成功不等于用户已收到结果。
 
