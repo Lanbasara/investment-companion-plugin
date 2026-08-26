@@ -11,7 +11,7 @@ observed → researching → qualified → actionable
        └──────── active 阶段可 rejected / expired / closed
 ```
 
-阶段只能逐级前进。qualified 和 actionable 必须引用真实 Research Validation Calculation；actionable 还必须绑定当前有效 Decision 和通过的 Risk Gate。阶段不是 LLM 置信概率，也不允许用自报证据等级绕过验证。
+阶段只能逐级前进。qualified 和 actionable 必须引用真实 Research Validation Calculation；actionable 还必须绑定当前有效 Decision 和通过的 Risk Gate。`eligible_for_bounded_action` 只能绑定 `conditional_action + bounded Risk Gate`；`eligible_for_decision` 才可绑定正式 `action`。阶段不是 LLM 置信概率，也不允许用自报证据等级绕过验证。
 
 ## 用户行动队列
 

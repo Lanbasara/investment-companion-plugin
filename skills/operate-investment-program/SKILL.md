@@ -24,8 +24,8 @@ description: 统一管理“今天做什么”、投资计划、机会漏斗、�
 1. 新线索先用 `$research-investment` 冻结来源，再用 `investment_opportunity_update(operation="create")` 登记研究问题。这不是推荐。
 2. 使用 `research_context` 读取当前 ResearchRecord 和 Validation；历史扫描、预测和信号只是研究输入，不自动成为 StrategyVersion。
 3. 每个交易日必须处理最新的 `provisional_action` 和持续候选：选择“进入完整研究 / 明确淘汰 / 继续观察并给出期限”之一。不得仅抄录榜单后结束；至少把最有希望且资料可补齐的候选推进为 ResearchRecord 和正式 Validation。
-4. 只有正式 Research Validation 达到 `eligible_for_decision` 后，才能把机会推进到 qualified/actionable。使用 `investment_opportunity_update(operation="transition")`，不用自报“证据等级”替代 Calculation。
-5. 涉及买卖、仓位或资产配置时切换到 `$decide-investment`。行动型 Decision 必须同时通过 Research Validation 和 Risk Gate；小额探索也必须明确为受限仓位，不得绕过硬风控。
+4. Research Validation 决定允许的最大行动强度：`eligible_for_bounded_action` 只允许受限条件行动，`eligible_for_decision` 才允许正式行动。两者都可推进 qualified；推进 actionable 还必须绑定匹配等级的 Decision 和 Risk Gate。使用 `investment_opportunity_update(operation="transition")`，不用自报“证据等级”替代 Calculation。
+5. 涉及买卖、仓位或资产配置时切换到 `$decide-investment`。正式行动和受限条件行动都必须通过 Research Validation 和 Risk Gate；受限行动还要求当前确认 Program 显式启用 bounded policy，缺少政策时不得用自然语言补一个仓位。
 6. 只有 active actionable 机会才用 `investment_action_update(operation="enqueue")` 进入用户队列。队列不得直接创建 Execution 或 Ledger。
 
 详细状态与失败关闭见 [operating-contract.md](references/operating-contract.md)。

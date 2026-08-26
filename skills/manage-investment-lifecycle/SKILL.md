@@ -35,7 +35,7 @@ description: 维护个人投资事实账本、账户、资产、现金、持仓�
 - 人生事实或约束变化后，使用 `$operate-investment-program` 复核当前计划，不让旧计划静默沿用过期条件。
 - 正式 Decision 使用 `investment_decision_publish`；必须冻结当前 Context、Portfolio Calculation、Thesis、替代方案和失效条件。
 - 用户接受行动后，使用 `investment_execution_update` 分别记录 prepare、order、report_fill 和 confirm_fill。报告成交仍不改变持仓，confirm_fill 只能引用用户确认的 Ledger Entry。
-- 当 Decision 适合由中金财富托管执行时，仍使用同一个 `investment_execution_update`，但选择 `strategy_create`：`plan_type` 仅允许 `priced_buy`、`priced_sell`、`bracket_exit`、`moving_grid`。先向用户展示全部参数，用户在券商 App 配置后才记录 `strategy_configured` 和 `strategy_activate`。
+- 当 Decision 适合由中金财富托管执行时，仍使用同一个 `investment_execution_update`，但选择 `strategy_create`：`plan_type` 仅允许 `priced_buy`、`priced_sell`、`bracket_exit`、`moving_grid`。先向用户展示全部参数；用户在券商 App 配置后，`strategy_configured` 必须同时记录 App 实际选择的 `broker_validity_sessions` 和显示的 `broker_valid_until`，且二者与授权计划完全一致，之后才可 `strategy_activate`。
 - 定价买入和定价卖出都允许 `cross_up` 或 `cross_down`，不得根据名称擅自固定方向。止盈止损的延迟确认两侧分别计数。
 - 网格只按中金已确认规则解释：触发驱动基准价；仅资金不足或持仓不足废单不更新，其他情况更新；终止不撤销已触发未成交委托；ETF 分红后网格自动终止；“终止并清仓失败”行为未知，必须人工核对，不得补猜。
 - 网格的买方向休眠和卖方向休眠必须分别使用 `strategy_sleep(direction="buy"|"sell")` 记录，不能把单方向休眠写成整张策略暂停。
