@@ -16,7 +16,7 @@ Primary Investment Codex 对最终判断负责。推荐、用户选择、券商�
 3. 检查证据：身份、基本事实、估值、反证或风险信息不足时，先使用 `$research-investment`。`eligible_for_bounded_action` 最多支持条件行动；正式行动要求 `eligible_for_decision`。`research_only` 不得形成行动卡。
 4. 建立基准：始终比较“不行动”、用户提出的行动，以及至少一个真实可行的替代方案。现金和等待是正式选择，不是分析失败。
 5. 冻结市场事实：决策使用的价格、汇率和流动性观测使用 `investment_evidence_update(operation="market_snapshot")` 登记，不使用聊天中的暂存数字。
-6. 构建行动方案：涉及仓位、现金和交易影响时调用 `investment_action_plan`。正式行动使用 `action_tier="standard"`；证据仅支持受限行动时使用 `action_tier="bounded"`，并提供券商实际支持的 `validity_sessions`。后者的上限和允许执行类型必须来自当前确认 Program，工具返回阻断时不得自行缩小数字后假装通过。首版受限通道不使用网格；网格只走完整研究资格的 standard 通道。
+6. 构建行动方案：涉及仓位、现金和交易影响时调用 `investment_action_plan`。全量对账日期已久但没有差异时，不得自动退化为“不行动”：缺少连续性确认则给仓位范围和条件化数量；用户确认无漏报并承诺持续报告后，记录 `continuity_confirm` 并生成具体方案。市场行情单独刷新，最终下单前始终核对券商 App 的可用现金和可用持仓。正式行动使用 `action_tier="standard"`；证据仅支持受限行动时使用 `action_tier="bounded"`，并提供券商实际支持的 `validity_sessions`。后者的上限和允许执行类型必须来自当前确认 Program，工具返回阻断时不得自行缩小数字后假装通过。首版受限通道不使用网格；网格只走完整研究资格的 standard 通道。
 7. 发布正式判断：使用 `investment_decision_publish` 冻结内容、知识截止、有效期、Thesis、来源、失效条件、不行动和替代方案。正式行动使用 `decision_kind="action"`；受限行动使用 `decision_kind="conditional_action"`。两者必须引用匹配等级且通过的 Research Validation 和 Risk Gate Calculation。
 8. 维护行动闭环：只有 Decision 关闭了 qualified 机会的重大未知项，才通过 `$operate-investment-program` 推进 actionable 并用 `investment_action_update(operation="enqueue")` 进入用户队列。不得直接创建成交。
 
@@ -32,4 +32,4 @@ Primary Investment Codex 对最终判断负责。推荐、用户选择、券商�
 - 最强反方、失效条件和下一观察点；
 - 用户需要执行、确认或暂时不做的具体下一步。
 
-结论强度必须与证据强度匹配。除非 Mandate、精确组合、实时风险和交易摩擦都已冻结，否则仓位只给条件化范围，不给伪精确比例。
+结论强度必须与证据强度匹配。除非 Mandate、账本连续性、实时风险和交易摩擦都已冻结，否则仓位只给条件化范围，不给伪精确比例；但缺少精确数量资格不等于缺少投资判断，不能用它逃避方向、范围和替代方案。

@@ -17,7 +17,7 @@ description: 维护个人投资事实账本、账户、资产、现金、持仓�
 
 1. 新会话或需要完整投资上下文时，先调用 `investment_home`。
 2. 涉及账户、现金、持仓、待确认成交或硬约束时，调用 `portfolio_context`。
-3. 必须读取 `truth_freshness` 和 `precision_boundary`：正文明确说出最近对账时间；状态为 `stale` 时只能称“账本持仓”，不得称当前真实持仓，不得给出依赖精确数量或现金的仓位建议，并请求当前账单、持仓截图或成交记录完成对账。
+3. 必须读取 `truth_freshness` 和 `precision_boundary`，正文明确最近对账时间与精度依据。市场价格变化只要求重新估值，不使账本数量失效。没有连续性确认时仍须给方向、仓位范围和条件化数量，不得因此写成“不行动”；需要精确数量时，询问用户是否确认自最近 matched 对账以来没有漏报交易、现金流、收入/费用/税、公司行动或未结订单，并承诺之后及时报告，确认后调用 `investment_transaction_update(operation="continuity_confirm")`。存在对账差异或待确认流水时只能给条件方案。无论是否允许精确建议，最终下单前都核对券商 App 的可用现金和可用持仓。
 4. 涉及过去决定、执行和绩效时，分别使用 `decision_context` 和 `evaluation_context`。不从聊天或 Markdown current 视图推断精确事实。
 
 ## 记录金融事实
@@ -26,6 +26,7 @@ description: 维护个人投资事实账本、账户、资产、现金、持仓�
 2. 把用户陈述转换为 `operation="record"`；回显账户、类型、时间、数量、价格、金额、币种与费用。返回的流水仍是 `needs_confirmation`。
 3. 只有用户明确确认后，才调用 `operation="confirm"`。随后重新读取 `portfolio_context` 验证派生状态。
 4. 券商账单使用 `operation="reconcile"`；差异保留待核对，绝不自动补平。
+5. 用户作出上述无遗漏与持续报告承诺时，使用 `operation="continuity_confirm"`，保存明确的 `user_confirmation_ref`；用户报告曾有遗漏、无法继续保证或发现账本缺口时立即使用 `operation="continuity_revoke"`。连续性确认不是券商实时同步，也不证明当前券商页面数值。
 
 详细符号和状态见 [financial-contract.md](references/financial-contract.md)。
 
