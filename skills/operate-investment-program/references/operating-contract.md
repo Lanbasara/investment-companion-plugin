@@ -6,6 +6,8 @@
 
 ## 研究机会
 
+候选 Manifest 产生后必须拥有一条 `candidate_triage` Research Work。分流必须精确覆盖冻结候选集，每项只能进入完整研究、明确淘汰或限期观察。完整研究任务只有在绑定同一 Program 的 Opportunity、active Thesis 和达到 `eligible_for_bounded_action` 或 `eligible_for_decision` 的正式 Thesis Validation 后才能记为 promoted。Research Work 是协调队列，不复制证据、Decision、Execution 或 Ledger 真相。
+
 ```text
 observed → researching → qualified → actionable
        └──────── active 阶段可 rejected / expired / closed
@@ -19,10 +21,10 @@ observed → researching → qualified → actionable
 
 ## 简报与记分卡
 
-所有简报包含 `summary`、`what_changed`、`decision`、`risks`、`next_check_at` 和 `queue_item_ids`。Weekly 增加 `program_progress` 与 `research_pipeline`；Monthly 增加 `scorecard_id`、`lessons` 与 `proposed_changes`。`no_action` 不得引用行动队列，`action` 至少引用一个当前有效队列项。
+所有简报包含 `summary`、`what_changed`、`decision`、`risks`、`next_check_at` 和 `queue_item_ids`。Weekly 增加 `program_progress` 与 `research_pipeline`；Monthly 增加 `scorecard_id`、`lessons` 与 `proposed_changes`。`no_action` 不得引用行动队列，也不得与未完成 Research Work 并存；`action` 至少引用一个当前有效队列项。
 
 记分卡每个 metric 只能包含 `name + calculation_id + output_path`；模型不能直接填写 value。计算器标记为 insufficient_evidence 的收益、基准、用户时间或成本不得被模型补写。
 
 ## 失败关闭
 
-Context 漂移、Decision 过期、Calculation 校验失败、研究资格不足、风险闸门阻断、行情陈旧、队列未真实送达或交付失败时，不得用自然语言绕过工具错误。应向用户解释具体缺口和安全下一步。
+Context 漂移、Decision 过期、Calculation 校验失败、候选缺少 Research Work、研究任务逾期、研究资格不足、风险闸门阻断、行情陈旧、队列未真实送达或交付失败时，不得用自然语言绕过工具错误。应向用户解释具体缺口和安全下一步。
