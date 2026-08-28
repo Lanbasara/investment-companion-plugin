@@ -1,5 +1,74 @@
 {
   "capabilities": {
+    "investment_context_update": {
+      "errors": [
+        "capability.input.invalid",
+        "capability.output.invalid"
+      ],
+      "input_schema": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "content": { "additionalProperties": true, "type": "object" },
+              "context_type": {
+                "enum": ["investor", "mandate", "attention"],
+                "type": "string"
+              },
+              "effective_from": { "type": "string" },
+              "expires_at": { "type": "string" },
+              "operation": { "const": "draft", "type": "string" },
+              "reason": { "type": "string" }
+            },
+            "required": ["operation", "context_type", "content", "reason"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "confirm", "type": "string" },
+              "revision_id": { "type": "string" },
+              "trial": { "type": "boolean" }
+            },
+            "required": ["operation", "revision_id"],
+            "type": "object"
+          }
+        ]
+      },
+      "invariants": [
+        "investment_context_update.draft_requires_confirmation/v1"
+      ],
+      "level": "workflow_required",
+      "rationale": "manage-investment-lifecycle drafts Investor, Mandate and Attention revisions, shows them to the user, then activates only the referenced revision after confirmation.",
+      "required_operations": {
+        "confirm": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            {
+              "path": "status",
+              "schema": { "enum": ["current", "trial"], "type": "string" }
+            },
+            { "path": "confirmed_at", "schema": { "type": "string" } }
+          ]
+        },
+        "draft": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            {
+              "path": "context_type",
+              "schema": {
+                "enum": ["investor", "mandate", "attention"],
+                "type": "string"
+              }
+            },
+            { "path": "content", "schema": { "type": "object" } },
+            { "path": "status", "schema": { "const": "draft", "type": "string" } }
+          ]
+        }
+      },
+      "required_outputs": [],
+      "workflows": ["manage-investment-lifecycle"]
+    },
     "investment_home": {
       "errors": [],
       "input_schema": {
@@ -14,42 +83,278 @@
       "level": "baseline_required",
       "rationale": "Investment Home must distinguish system degradation from a valid no-action conclusion before any investment workflow proceeds.",
       "required_outputs": [
-        {
-          "path": "production_health",
-          "schema": { "type": "object" }
-        },
-        {
-          "path": "production_health.baseline",
-          "schema": { "type": "object" }
-        },
+        { "path": "production_health", "schema": { "type": "object" } },
+        { "path": "production_health.baseline", "schema": { "type": "object" } },
         {
           "path": "production_health.baseline.status",
           "schema": {
-            "enum": [
-              "compatible",
-              "degraded",
-              "unverified",
-              "not_applicable"
-            ],
+            "enum": ["compatible", "degraded", "unverified", "not_applicable"],
             "type": "string"
           }
         },
-        {
-          "path": "production_health.workflows",
-          "schema": { "type": "object" }
-        },
-        {
-          "path": "production_health.optional_enhancements",
-          "schema": { "type": "object" }
-        },
-        {
-          "path": "production_health.incidents",
-          "schema": { "type": "array" }
-        }
+        { "path": "production_health.workflows", "schema": { "type": "object" } },
+        { "path": "production_health.optional_enhancements", "schema": { "type": "object" } },
+        { "path": "production_health.incidents", "schema": { "type": "array" } }
       ],
       "workflows": [
         "decide-investment",
         "manage-investment-companion",
+        "manage-investment-lifecycle",
+        "operate-investment-program"
+      ]
+    },
+    "investment_transaction_update": {
+      "errors": [
+        "capability.input.invalid",
+        "capability.output.invalid"
+      ],
+      "input_schema": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "base_currency": { "type": "string" },
+              "institution": { "type": "string" },
+              "metadata": { "additionalProperties": true, "type": "object" },
+              "name": { "type": "string" },
+              "operation": { "const": "account_create", "type": "string" }
+            },
+            "required": ["operation", "name", "base_currency"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "asset_type": { "type": "string" },
+              "currency": { "type": "string" },
+              "identifiers": { "additionalProperties": true, "type": "object" },
+              "metadata": { "additionalProperties": true, "type": "object" },
+              "name": { "type": "string" },
+              "operation": { "const": "asset_register", "type": "string" }
+            },
+            "required": ["operation", "asset_type", "name", "currency", "identifiers"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "account_id": { "type": "string" },
+              "amount": {},
+              "asset_id": { "type": "string" },
+              "currency": { "type": "string" },
+              "entry_type": { "type": "string" },
+              "external_id": { "type": "string" },
+              "fee": {},
+              "metadata": { "additionalProperties": true, "type": "object" },
+              "occurred_at": { "type": "string" },
+              "operation": { "const": "record", "type": "string" },
+              "price": {},
+              "quantity": {},
+              "settled_at": { "type": "string" },
+              "source": { "type": "string" }
+            },
+            "required": ["operation", "account_id", "entry_type", "occurred_at", "amount", "currency", "source"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "entry_id": { "type": "string" },
+              "operation": { "const": "confirm", "type": "string" }
+            },
+            "required": ["operation", "entry_id"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "entry_id": { "type": "string" },
+              "occurred_at": { "type": "string" },
+              "operation": { "const": "reverse", "type": "string" },
+              "reason": { "type": "string" }
+            },
+            "required": ["operation", "entry_id", "reason"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "account_id": { "type": "string" },
+              "as_of": { "type": "string" },
+              "operation": { "const": "reconcile", "type": "string" },
+              "source_ref": { "type": "string" },
+              "statement": {
+                "additionalProperties": false,
+                "properties": {
+                  "cash": { "additionalProperties": {}, "type": "object" },
+                  "metadata": { "additionalProperties": true, "type": "object" },
+                  "position_total_by_currency": { "additionalProperties": {}, "type": "object" },
+                  "position_values": { "additionalProperties": {}, "type": "object" },
+                  "positions": { "additionalProperties": {}, "type": "object" },
+                  "total_by_currency": { "additionalProperties": {}, "type": "object" }
+                },
+                "required": ["cash", "positions", "position_values", "position_total_by_currency", "total_by_currency"],
+                "type": "object"
+              }
+            },
+            "required": ["operation", "account_id", "as_of", "statement"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "account_id": { "type": "string" },
+              "confirmed_at": { "type": "string" },
+              "operation": { "const": "continuity_confirm", "type": "string" },
+              "reporting_commitment": { "type": "boolean" },
+              "user_confirmation_ref": { "type": "string" }
+            },
+            "required": ["operation", "account_id", "confirmed_at", "user_confirmation_ref", "reporting_commitment"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "confirmation_id": { "type": "string" },
+              "operation": { "const": "continuity_revoke", "type": "string" },
+              "reason": { "type": "string" }
+            },
+            "required": ["operation", "confirmation_id", "reason"],
+            "type": "object"
+          }
+        ]
+      },
+      "invariants": [
+        "investment_transaction_update.confirmed_ledger_only_changes_portfolio/v1",
+        "investment_transaction_update.continuity_is_not_broker_sync/v1",
+        "investment_transaction_update.reconciliation_never_autofills/v1"
+      ],
+      "level": "workflow_required",
+      "rationale": "manage-investment-lifecycle uses every listed operation to maintain account identity, pending and confirmed facts, immutable reversals, reconciliation and manual continuity; decide-investment uses continuity qualification before exact sizing.",
+      "required_operations": {
+        "account_create": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "base_currency", "schema": { "type": "string" } }
+          ]
+        },
+        "asset_register": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "currency", "schema": { "type": "string" } }
+          ]
+        },
+        "confirm": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "const": "confirmed", "type": "string" } },
+            { "path": "confirmed_at", "schema": {} }
+          ]
+        },
+        "continuity_confirm": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "const": "active", "type": "string" } },
+            { "path": "reporting_commitment", "schema": { "const": true, "type": "boolean" } },
+            { "path": "user_confirmation_ref", "schema": { "type": "string" } },
+            { "path": "anchor_reconciliation_id", "schema": { "type": "string" } }
+          ]
+        },
+        "continuity_revoke": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "const": "revoked", "type": "string" } },
+            { "path": "revoke_reason", "schema": { "type": "string" } }
+          ]
+        },
+        "reconcile": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            {
+              "path": "status",
+              "schema": { "enum": ["matched", "needs_review"], "type": "string" }
+            },
+            { "path": "differences", "schema": { "type": "array" } },
+            { "path": "reconciliation.full_scope_matched", "schema": { "type": "boolean" } }
+          ]
+        },
+        "record": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "const": "needs_confirmation", "type": "string" } },
+            { "path": "account_id", "schema": { "type": "string" } },
+            { "path": "amount_text", "schema": { "type": "string" } }
+          ]
+        },
+        "reverse": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "const": "confirmed", "type": "string" } },
+            { "path": "entry_type", "schema": { "const": "reversal", "type": "string" } },
+            { "path": "reversal_of", "schema": { "type": "string" } }
+          ]
+        }
+      },
+      "required_outputs": [],
+      "workflows": ["decide-investment", "manage-investment-lifecycle"]
+    },
+    "portfolio_context": {
+      "errors": [
+        "capability.input.invalid",
+        "capability.output.invalid"
+      ],
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": { "type": "string" },
+          "as_of": { "type": "string" },
+          "prices": { "additionalProperties": true, "type": "object" }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "invariants": [
+        "portfolio_context.confirmed_ledger_only/v1",
+        "portfolio_context.truth_and_precision_explicit/v1"
+      ],
+      "level": "workflow_required",
+      "rationale": "manage-investment-lifecycle reads confirmed portfolio truth, pending facts and precision qualification; decide-investment and operate-investment-program read only the subset needed for decisions and setup.",
+      "required_outputs": [
+        { "path": "account.id", "schema": { "type": "string" } },
+        { "path": "account.base_currency", "schema": { "type": "string" } },
+        { "path": "portfolio.cash", "schema": { "type": "object" } },
+        { "path": "portfolio.positions", "schema": { "type": "array" } },
+        { "path": "portfolio.calculation_id", "schema": { "type": "string" } },
+        { "path": "pending_transactions", "schema": { "type": "array" } },
+        { "path": "investor", "schema": { "type": ["object", "null"] } },
+        { "path": "mandate", "schema": { "type": ["object", "null"] } },
+        { "path": "truth", "schema": { "const": "confirmed_ledger_replay", "type": "string" } },
+        {
+          "path": "truth_freshness.status",
+          "schema": {
+            "enum": [
+              "reconciliation_needs_review",
+              "pending_transactions",
+              "open_execution_preflight_required",
+              "ledger_continuity_confirmed",
+              "continuity_confirmation_required",
+              "recently_reconciled"
+            ],
+            "type": "string"
+          }
+        },
+        { "path": "truth_freshness.full_scope_matched", "schema": { "type": "boolean" } },
+        { "path": "truth_freshness.pending_transaction_count", "schema": { "type": "integer" } },
+        { "path": "truth_freshness.continuity_confirmation", "schema": {} },
+        { "path": "precision_boundary.current_broker_position_proven", "schema": { "type": "boolean" } },
+        { "path": "precision_boundary.ledger_position_continuity_supported", "schema": { "type": "boolean" } },
+        { "path": "precision_boundary.precise_position_advice_allowed", "schema": { "type": "boolean" } },
+        { "path": "precision_boundary.conditional_position_advice_allowed", "schema": { "const": true, "type": "boolean" } },
+        { "path": "precision_boundary.market_revaluation_required", "schema": { "const": true, "type": "boolean" } },
+        { "path": "precision_boundary.final_order_quantities_require_broker_preflight", "schema": { "const": true, "type": "boolean" } }
+      ],
+      "workflows": [
+        "decide-investment",
         "manage-investment-lifecycle",
         "operate-investment-program"
       ]
