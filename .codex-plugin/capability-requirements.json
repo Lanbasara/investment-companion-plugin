@@ -1,0 +1,60 @@
+{
+  "capabilities": {
+    "investment_home": {
+      "errors": [],
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "required": [],
+        "type": "object"
+      },
+      "invariants": [
+        "investment_home.production_health.required/v1"
+      ],
+      "level": "baseline_required",
+      "rationale": "Investment Home must distinguish system degradation from a valid no-action conclusion before any investment workflow proceeds.",
+      "required_outputs": [
+        {
+          "path": "production_health",
+          "schema": { "type": "object" }
+        },
+        {
+          "path": "production_health.baseline",
+          "schema": { "type": "object" }
+        },
+        {
+          "path": "production_health.baseline.status",
+          "schema": {
+            "enum": [
+              "compatible",
+              "degraded",
+              "unverified",
+              "not_applicable"
+            ],
+            "type": "string"
+          }
+        },
+        {
+          "path": "production_health.workflows",
+          "schema": { "type": "object" }
+        },
+        {
+          "path": "production_health.optional_enhancements",
+          "schema": { "type": "object" }
+        },
+        {
+          "path": "production_health.incidents",
+          "schema": { "type": "array" }
+        }
+      ],
+      "workflows": [
+        "decide-investment",
+        "manage-investment-companion",
+        "manage-investment-lifecycle",
+        "operate-investment-program"
+      ]
+    }
+  },
+  "consumer": "investment-companion-plugin",
+  "format": "investment-companion.capability-requirements/v1"
+}

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+plugin_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+core_root="${COMPANION_CORE_ROOT:-/home/ghk/investment-home}"
+
+exec env PYTHONPATH="$core_root" python3 -m companion.capabilities validate \
+  --requirements "$plugin_root/.codex-plugin/capability-requirements.json"
