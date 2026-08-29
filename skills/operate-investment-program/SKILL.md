@@ -16,7 +16,7 @@ description: 统一管理“今天做什么”、投资计划、机会漏斗、�
 1. 先调用 `investment_home`，不根据聊天历史猜测当前状态。
 2. 读取返回的 `production_health`；只要关键运行版本、服务或研究流水线失败，结论必须是 `system_degraded`，不得写成 `no_action`。`system_degraded` 的核心依据必须逐项引用 `production_health.incidents` 中实际失败的检查，不得用账户连续性、估值时点或研究证据不足冒充系统故障。先报告故障、修复或触发恢复，再重新判断。
 3. 读取 `research.work_queue`。存在未完成研究义务时结论为 `review_required`；调用 `research_context` 查看队列，不得沿用旧日 `no_action`。
-4. `setup_required`：读取 `portfolio_context` 和 `investment_program_context`，与用户确认目标、基准、风险、范围、节奏和停止条件。使用 `investment_program_update(operation="create")` 产生草稿；只有用户批准后才 `operation="confirm"`。
+4. `setup_required`：读取 `portfolio_context` 和 `investment_program_context`，与用户确认目标、基准、风险、范围、节奏和停止条件。使用 `investment_program_update(operation="create")` 产生草稿；只有用户批准后才 `operation="confirm"`，并保存该用户消息为 `user_approval_ref`。修订、暂停、恢复或归档前重新读取 `version` 并传入 `expected_version`；版本冲突时重新读取，不覆盖并发变更。
 5. `action`：读取 `decision_context`，最多展示三个最重要行动，说明有效期、阻断条件、不行动和替代方案。`no_action` 只表示全部关键链路和研究义务已经完成但没有达到门槛。
 
 ## 研究到行动的闭环

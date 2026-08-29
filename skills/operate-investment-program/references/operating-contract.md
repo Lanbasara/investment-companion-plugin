@@ -2,7 +2,7 @@
 
 ## 投资计划
 
-计划内容为 `objective`、`success_criteria`、`benchmark`、`risk_budget`、`universe`、`horizons`、`operating_cadence`、`stop_conditions` 和 `account_ids`。Context 引用必须指向当前确认的 Investor、Mandate 和 Attention Revision。同一时刻只允许一份 active 计划；Context 或账户改变后失败关闭，直到用户确认修订版。
+计划内容为 `objective`、`success_criteria`、`benchmark`、`risk_budget`、`universe`、`horizons`、`operating_cadence`、`stop_conditions` 和 `account_ids`。Context 引用必须指向当前确认的 Investor、Mandate 和 Attention Revision。同一时刻只允许一份 active 计划；Context 或账户改变后失败关闭，直到用户确认修订版。修订与状态变更必须携带最近读取的 `expected_version`；确认必须携带对应用户批准消息的 `user_approval_ref`。
 
 ## 研究机会
 

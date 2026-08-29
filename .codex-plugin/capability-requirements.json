@@ -256,6 +256,424 @@
       "required_outputs": [],
       "workflows": ["manage-investment-lifecycle", "operate-investment-program"]
     },
+    "investment_program_context": {
+      "errors": ["capability.input.invalid", "capability.output.invalid"],
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "program_id": { "type": "string" },
+          "status": {
+            "enum": ["draft", "active", "paused", "superseded", "archived"],
+            "type": "string"
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "invariants": [
+        "investment_program.references_context_without_owning_truth/v1"
+      ],
+      "level": "workflow_required",
+      "rationale": "operate-investment-program and decide-investment restore the current or selected Program, immutable revision history, optimistic version, lifecycle status and confirmed Context references without treating the Program as a second source of personal, portfolio, research or performance truth.",
+      "required_outputs": [
+        { "path": "schema", "schema": { "const": "investment-companion.program-context/v1", "type": "string" } },
+        { "path": "as_of", "schema": { "type": "string" } },
+        { "path": "current", "schema": { "type": ["object", "null"] } },
+        { "path": "selected", "schema": { "type": ["object", "null"] } },
+        { "path": "programs", "schema": { "type": "array" } },
+        { "path": "truth", "schema": { "const": "immutable_program_revisions_and_confirmed_context_refs", "type": "string" } }
+      ],
+      "workflows": ["decide-investment", "operate-investment-program"]
+    },
+    "investment_program_update": {
+      "errors": [
+        "capability.input.invalid",
+        "capability.output.invalid",
+        "investment_program.version_conflict"
+      ],
+      "input_schema": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "create", "type": "string" },
+              "name": { "type": "string" },
+              "content": {
+                "additionalProperties": false,
+                "properties": {
+                  "objective": { "type": "string" },
+                  "success_criteria": { "items": { "type": "string" }, "type": "array" },
+                  "benchmark": { "additionalProperties": true, "type": "object" },
+                  "risk_budget": { "additionalProperties": true, "type": "object" },
+                  "universe": { "additionalProperties": true, "type": "object" },
+                  "horizons": { "additionalProperties": true, "type": "object" },
+                  "operating_cadence": { "additionalProperties": true, "type": "object" },
+                  "stop_conditions": { "items": { "type": "string" }, "type": "array" },
+                  "account_ids": { "items": { "type": "string" }, "type": "array" }
+                },
+                "required": ["objective", "success_criteria", "benchmark", "risk_budget", "universe", "horizons", "operating_cadence", "stop_conditions", "account_ids"],
+                "type": "object"
+              },
+              "context_refs": {
+                "additionalProperties": false,
+                "properties": {
+                  "investor_revision_id": { "type": "string" },
+                  "mandate_revision_id": { "type": "string" },
+                  "attention_revision_id": { "type": "string" }
+                },
+                "required": ["investor_revision_id", "mandate_revision_id", "attention_revision_id"],
+                "type": "object"
+              },
+              "reason": { "type": "string" },
+              "expires_at": { "type": "string" }
+            },
+            "required": ["operation", "name", "content", "context_refs", "reason"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "revise", "type": "string" },
+              "program_id": { "type": "string" },
+              "expected_version": { "type": "integer" },
+              "content": {
+                "additionalProperties": false,
+                "properties": {
+                  "objective": { "type": "string" },
+                  "success_criteria": { "items": { "type": "string" }, "type": "array" },
+                  "benchmark": { "additionalProperties": true, "type": "object" },
+                  "risk_budget": { "additionalProperties": true, "type": "object" },
+                  "universe": { "additionalProperties": true, "type": "object" },
+                  "horizons": { "additionalProperties": true, "type": "object" },
+                  "operating_cadence": { "additionalProperties": true, "type": "object" },
+                  "stop_conditions": { "items": { "type": "string" }, "type": "array" },
+                  "account_ids": { "items": { "type": "string" }, "type": "array" }
+                },
+                "required": ["objective", "success_criteria", "benchmark", "risk_budget", "universe", "horizons", "operating_cadence", "stop_conditions", "account_ids"],
+                "type": "object"
+              },
+              "context_refs": {
+                "additionalProperties": false,
+                "properties": {
+                  "investor_revision_id": { "type": "string" },
+                  "mandate_revision_id": { "type": "string" },
+                  "attention_revision_id": { "type": "string" }
+                },
+                "required": ["investor_revision_id", "mandate_revision_id", "attention_revision_id"],
+                "type": "object"
+              },
+              "reason": { "type": "string" },
+              "expires_at": { "type": "string" }
+            },
+            "required": ["operation", "program_id", "expected_version", "content", "context_refs", "reason"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "confirm", "type": "string" },
+              "revision_id": { "type": "string" },
+              "user_approval_ref": { "type": "string" },
+              "trial": { "type": "boolean" },
+              "supersedes_program_id": { "type": "string" }
+            },
+            "required": ["operation", "revision_id", "user_approval_ref"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "status", "type": "string" },
+              "program_id": { "type": "string" },
+              "expected_version": { "type": "integer" },
+              "status": { "const": "active", "type": "string" },
+              "reason": { "type": "string" }
+            },
+            "required": ["operation", "program_id", "expected_version", "status", "reason"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "status", "type": "string" },
+              "program_id": { "type": "string" },
+              "expected_version": { "type": "integer" },
+              "status": { "const": "paused", "type": "string" },
+              "reason": { "type": "string" }
+            },
+            "required": ["operation", "program_id", "expected_version", "status", "reason"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "status", "type": "string" },
+              "program_id": { "type": "string" },
+              "expected_version": { "type": "integer" },
+              "status": { "const": "archived", "type": "string" },
+              "reason": { "type": "string" }
+            },
+            "required": ["operation", "program_id", "expected_version", "status", "reason"],
+            "type": "object"
+          }
+        ]
+      },
+      "invariants": [
+        "investment_program.confirmation_and_versioning_required/v1",
+        "investment_program.references_context_without_owning_truth/v1"
+      ],
+      "level": "workflow_required",
+      "rationale": "operate-investment-program creates and revises immutable Program drafts with optimistic versions, confirms them only with an explicit user approval reference, and uses versioned status transitions for pause, resume and archive.",
+      "required_operations": {
+        "create": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "const": "draft", "type": "string" } },
+            { "path": "version", "schema": { "type": "integer" } },
+            { "path": "revisions", "schema": { "type": "array" } }
+          ]
+        },
+        "revise": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "type": "string" } },
+            { "path": "version", "schema": { "type": "integer" } },
+            { "path": "revisions", "schema": { "type": "array" } }
+          ]
+        },
+        "confirm": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "const": "active", "type": "string" } },
+            { "path": "version", "schema": { "type": "integer" } },
+            { "path": "current_revision.id", "schema": { "type": "string" } },
+            { "path": "current_revision.status", "schema": { "enum": ["current", "trial"], "type": "string" } },
+            { "path": "current_revision.content", "schema": { "type": "object" } },
+            { "path": "current_revision.context_refs.investor_revision_id", "schema": { "type": "string" } },
+            { "path": "current_revision.context_refs.mandate_revision_id", "schema": { "type": "string" } },
+            { "path": "current_revision.context_refs.attention_revision_id", "schema": { "type": "string" } },
+            { "path": "current_revision.user_approval_ref", "schema": {} },
+            { "path": "revisions", "schema": { "type": "array" } }
+          ]
+        },
+        "status": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "enum": ["draft", "active", "paused", "superseded", "archived"], "type": "string" } },
+            { "path": "version", "schema": { "type": "integer" } },
+            { "path": "current_revision", "schema": {} },
+            { "path": "revisions", "schema": { "type": "array" } }
+          ]
+        }
+      },
+      "required_outputs": [],
+      "workflows": ["operate-investment-program"]
+    },
+    "investment_brief_update": {
+      "errors": [
+        "capability.input.invalid",
+        "capability.output.invalid",
+        "investment_program.not_active",
+        "investment_brief.unresolved_obligations",
+        "investment_brief.calculation_lineage_required"
+      ],
+      "input_schema": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "publish", "type": "string" },
+              "brief_type": { "const": "daily", "type": "string" },
+              "period_key": { "type": "string" },
+              "as_of": { "type": "string" },
+              "conclusion": { "enum": ["no_action", "action", "review_required", "insufficient_evidence"], "type": "string" },
+              "payload": {
+                "additionalProperties": false,
+                "properties": {
+                  "summary": { "type": "string" },
+                  "what_changed": { "items": { "type": "string" }, "type": "array" },
+                  "decision": { "type": "string" },
+                  "risks": { "items": { "type": "string" }, "type": "array" },
+                  "next_check_at": { "type": "string" },
+                  "queue_item_ids": { "items": { "type": "string" }, "type": "array" }
+                },
+                "required": ["summary", "what_changed", "decision", "risks", "next_check_at", "queue_item_ids"],
+                "type": "object"
+              },
+              "source_refs": { "items": { "type": "string" }, "type": "array" },
+              "idempotency_key": { "type": "string" },
+              "program_id": { "type": "string" }
+            },
+            "required": ["operation", "brief_type", "period_key", "as_of", "conclusion", "payload", "source_refs"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "publish", "type": "string" },
+              "brief_type": { "const": "weekly", "type": "string" },
+              "period_key": { "type": "string" },
+              "as_of": { "type": "string" },
+              "conclusion": { "enum": ["no_action", "action", "review_required", "insufficient_evidence"], "type": "string" },
+              "payload": {
+                "additionalProperties": false,
+                "properties": {
+                  "summary": { "type": "string" },
+                  "what_changed": { "items": { "type": "string" }, "type": "array" },
+                  "decision": { "type": "string" },
+                  "risks": { "items": { "type": "string" }, "type": "array" },
+                  "next_check_at": { "type": "string" },
+                  "queue_item_ids": { "items": { "type": "string" }, "type": "array" },
+                  "program_progress": { "additionalProperties": true, "type": "object" },
+                  "research_pipeline": { "additionalProperties": true, "type": "object" }
+                },
+                "required": ["summary", "what_changed", "decision", "risks", "next_check_at", "queue_item_ids", "program_progress", "research_pipeline"],
+                "type": "object"
+              },
+              "source_refs": { "items": { "type": "string" }, "type": "array" },
+              "idempotency_key": { "type": "string" },
+              "program_id": { "type": "string" }
+            },
+            "required": ["operation", "brief_type", "period_key", "as_of", "conclusion", "payload", "source_refs"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "publish", "type": "string" },
+              "brief_type": { "const": "monthly", "type": "string" },
+              "period_key": { "type": "string" },
+              "as_of": { "type": "string" },
+              "conclusion": { "enum": ["no_action", "action", "review_required", "insufficient_evidence"], "type": "string" },
+              "payload": {
+                "additionalProperties": false,
+                "properties": {
+                  "summary": { "type": "string" },
+                  "what_changed": { "items": { "type": "string" }, "type": "array" },
+                  "decision": { "type": "string" },
+                  "risks": { "items": { "type": "string" }, "type": "array" },
+                  "next_check_at": { "type": "string" },
+                  "queue_item_ids": { "items": { "type": "string" }, "type": "array" },
+                  "scorecard_id": { "type": "string" },
+                  "lessons": { "items": { "type": "string" }, "type": "array" },
+                  "proposed_changes": { "items": { "type": "string" }, "type": "array" }
+                },
+                "required": ["summary", "what_changed", "decision", "risks", "next_check_at", "queue_item_ids", "scorecard_id", "lessons", "proposed_changes"],
+                "type": "object"
+              },
+              "source_refs": { "items": { "type": "string" }, "type": "array" },
+              "idempotency_key": { "type": "string" },
+              "program_id": { "type": "string" }
+            },
+            "required": ["operation", "brief_type", "period_key", "as_of", "conclusion", "payload", "source_refs"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "metrics_calculate", "type": "string" },
+              "period_start": { "type": "string" },
+              "period_end": { "type": "string" },
+              "program_id": { "type": "string" }
+            },
+            "required": ["operation", "period_start", "period_end"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "scorecard_publish", "type": "string" },
+              "period_start": { "type": "string" },
+              "period_end": { "type": "string" },
+              "metrics": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": { "type": "string" },
+                    "calculation_id": { "type": "string" },
+                    "output_path": { "type": "string" }
+                  },
+                  "required": ["name", "calculation_id", "output_path"],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "comparisons": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "label": { "type": "string" },
+                    "left_metric": { "type": "string" },
+                    "right_metric": { "type": "string" },
+                    "interpretation": { "type": "string" }
+                  },
+                  "required": ["label", "left_metric", "right_metric", "interpretation"],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "source_refs": { "items": { "type": "string" }, "type": "array" },
+              "caveats": { "items": { "type": "string" }, "type": "array" },
+              "program_id": { "type": "string" }
+            },
+            "required": ["operation", "period_start", "period_end", "metrics", "comparisons", "source_refs", "caveats"],
+            "type": "object"
+          }
+        ]
+      },
+      "invariants": [
+        "investment_brief.no_action_requires_resolved_obligations/v1",
+        "investment_brief.references_calculations_without_owning_truth/v1"
+      ],
+      "level": "workflow_required",
+      "rationale": "operate-investment-program publishes discriminated daily, weekly and monthly Briefs, rejects no_action while declared work remains, freezes deterministic process metrics, and publishes Scorecards whose values and outcome references resolve from Calculation lineage.",
+      "required_operations": {
+        "publish": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "program_id", "schema": { "type": "string" } },
+            { "path": "program_revision_id", "schema": { "type": "string" } },
+            { "path": "brief_type", "schema": { "enum": ["daily", "weekly", "monthly"], "type": "string" } },
+            { "path": "conclusion", "schema": { "enum": ["no_action", "action", "review_required", "insufficient_evidence"], "type": "string" } },
+            { "path": "payload.summary", "schema": { "type": "string" } },
+            { "path": "payload.decision", "schema": { "type": "string" } },
+            { "path": "payload.next_check_at", "schema": { "type": "string" } },
+            { "path": "payload.execution_snapshot.calculation_id", "schema": { "type": "string" } },
+            { "path": "payload.execution_snapshot.truth", "schema": { "const": "confirmed_ledger_replay", "type": "string" } },
+            { "path": "payload.execution_snapshot.frozen", "schema": { "const": true, "type": "boolean" } },
+            { "path": "source_refs", "schema": { "type": "array" } },
+            { "path": "status", "schema": { "enum": ["ready", "presented", "superseded"], "type": "string" } }
+          ]
+        },
+        "metrics_calculate": {
+          "required_outputs": [
+            { "path": "period.start", "schema": { "type": "string" } },
+            { "path": "period.end", "schema": { "type": "string" } },
+            { "path": "opportunity_flow", "schema": { "type": "object" } },
+            { "path": "decision_flow", "schema": { "type": "object" } },
+            { "path": "brief_flow", "schema": { "type": "object" } },
+            { "path": "coverage", "schema": { "type": "object" } },
+            { "path": "calculation_id", "schema": { "type": "string" } }
+          ]
+        },
+        "scorecard_publish": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "program_id", "schema": { "type": "string" } },
+            { "path": "program_revision_id", "schema": { "type": "string" } },
+            { "path": "period_start", "schema": { "type": "string" } },
+            { "path": "period_end", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "enum": ["ready", "insufficient_evidence"], "type": "string" } },
+            { "path": "metrics", "schema": { "type": "array" } },
+            { "path": "comparisons", "schema": { "type": "array" } },
+            { "path": "source_refs", "schema": { "type": "array" } },
+            { "path": "caveats", "schema": { "type": "array" } }
+          ]
+        }
+      },
+      "required_outputs": [],
+      "workflows": ["operate-investment-program"]
+    },
     "investment_decision_publish": {
       "errors": ["capability.input.invalid", "capability.output.invalid"],
       "input_schema": {
