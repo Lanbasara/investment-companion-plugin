@@ -9,6 +9,10 @@ Primary Investment Codex 是唯一最终判断和用户沟通主体。Schedule�
 
 账户、持仓、成交、个人约束、Decision、Execution、Performance 和 Review 使用 `$manage-investment-lifecycle`；机会与日周月经营使用 `$operate-investment-program`。
 
+## Compatibility Gate
+
+先读取 `investment_home.production_health`。`baseline.status` 不是 `compatible` 时不完成任何会被解释为可信投资结论的 Run 或 Delivery，并报告 baseline incidents；`workflows.manage-investment-companion.status` 不是 `compatible` 时只停用本工作流，保留其他 compatible 工作流。optional enhancement 返回 `fallback` 时执行其声明的 `fallback`，说明降级原因，禁止静默成功。
+
 ## 管理统一日历
 
 1. 读取 `investment_home` 的主动任务摘要；需要精确配置、版本或历史时，使用 `investment_workflow_context`。

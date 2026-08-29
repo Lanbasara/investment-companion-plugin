@@ -13,6 +13,10 @@ description: 维护个人投资事实账本、账户、资产、现金、持仓�
 - 缺少账户、数量、币种、时间或成交口径时，只登记待确认事实或先询问，不补猜。
 - 仿真、行动卡接受和用户说“准备买”都不是成交。
 
+## Compatibility Gate
+
+先读取 `investment_home.production_health`。`baseline.status` 不是 `compatible` 时停止形成正式 Decision、Performance 或 Review 结论，但仍可如实记录用户确认的金融事实；`workflows.manage-investment-lifecycle.status` 不是 `compatible` 时只停用本工作流并报告 incidents。optional enhancement 返回 `fallback` 时执行其声明的 `fallback`，说明降级原因，禁止静默成功。
+
 ## 恢复真实状态
 
 1. 新会话或需要完整投资上下文时，先调用 `investment_home`。

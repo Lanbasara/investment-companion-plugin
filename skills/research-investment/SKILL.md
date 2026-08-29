@@ -11,6 +11,10 @@ Primary Investment Codex 是唯一最终理解者和作者。数据工具提供�
 
 扫描榜单、预测候选、搜索摘要和 Agent 意见都是研究材料，不是 Decision、行动或成交。历史 Pipeline 名称不等于正式 StrategyVersion。
 
+## Compatibility Gate
+
+先读取 `investment_home.production_health`。`baseline.status` 不是 `compatible` 时只收集并明确标注未验证材料，不发布可作为可信投资结论的 Thesis/Validation；`workflows.research-investment.status` 不是 `compatible` 时只停用本工作流并报告 incidents。optional enhancement 返回 `fallback` 时执行其声明的 `fallback`，说明降级原因，禁止静默成功。
+
 ## 工作流
 
 1. 定义问题：写清标的、决策问题、时间范围、知识截止时间和对用户组合的相关性。身份不明时先核验，不猜代码。
