@@ -1491,6 +1491,499 @@
       "required_outputs": [],
       "workflows": ["decide-investment", "manage-investment-lifecycle"]
     },
+    "investment_workflow_context": {
+      "errors": ["capability.input.invalid", "capability.output.invalid"],
+      "input_schema": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": { "enum": ["patrol", "review", "maintenance", "one_shot"], "type": "string" },
+              "status": { "enum": ["active", "paused", "archived", "expired"], "type": "string" },
+              "view": { "const": "schedules", "type": "string" }
+            },
+            "required": ["view"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "schedule_id": { "type": "string" },
+              "view": { "const": "schedule", "type": "string" }
+            },
+            "required": ["view", "schedule_id"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "limit": { "maximum": 100, "minimum": 1, "type": "integer" },
+              "schedule_id": { "type": "string" },
+              "view": { "const": "schedule_history", "type": "string" }
+            },
+            "required": ["view", "schedule_id"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "limit": { "maximum": 100, "minimum": 1, "type": "integer" },
+              "status": { "enum": ["queued", "leased", "succeeded", "failed", "cancelled", "recoverable"], "type": "string" },
+              "view": { "const": "runs", "type": "string" }
+            },
+            "required": ["view"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "run_id": { "type": "string" },
+              "view": { "const": "run", "type": "string" }
+            },
+            "required": ["view", "run_id"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "limit": { "maximum": 500, "minimum": 1, "type": "integer" },
+              "mode": { "enum": ["silent_allowed", "digest_required", "report_required", "action_required"], "type": "string" },
+              "status": { "enum": ["pending_content", "queued_digest", "pending_send", "sending", "delivered", "retry", "failed", "suppressed"], "type": "string" },
+              "view": { "const": "deliveries", "type": "string" }
+            },
+            "required": ["view"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "delivery_id": { "type": "string" },
+              "view": { "const": "delivery", "type": "string" }
+            },
+            "required": ["view", "delivery_id"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": { "view": { "const": "delivery_status", "type": "string" } },
+            "required": ["view"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": { "view": { "const": "system_status", "type": "string" } },
+            "required": ["view"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": { "view": { "const": "doctor", "type": "string" } },
+            "required": ["view"],
+            "type": "object"
+          }
+        ]
+      },
+      "invariants": [
+        "investment_delivery.status_is_transport_receipt/v1",
+        "investment_workflow.run_success_is_not_delivery/v1"
+      ],
+      "level": "workflow_required",
+      "rationale": "manage-investment-companion reads the exact versioned Schedule, Run and Delivery state, recent history, delivery backlog and bounded system diagnostics; execution strategy views remain outside this workflow until the dedicated execution contract migration.",
+      "required_operations": {
+        "deliveries": { "required_outputs": [] },
+        "delivery": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "run_id", "schema": { "type": "string" } },
+            { "path": "mode", "schema": { "enum": ["silent_allowed", "digest_required", "report_required", "action_required"], "type": "string" } },
+            { "path": "status", "schema": { "enum": ["pending_content", "queued_digest", "pending_send", "sending", "delivered", "retry", "failed", "suppressed"], "type": "string" } },
+            { "path": "outbox_id", "schema": { "type": ["string", "null"] } },
+            { "path": "last_error", "schema": { "type": ["string", "null"] } }
+          ]
+        },
+        "delivery_status": {
+          "required_outputs": [
+            { "path": "counts", "schema": { "type": "object" } },
+            { "path": "overdue_required", "schema": { "type": "integer" } },
+            { "path": "now", "schema": { "type": "string" } }
+          ]
+        },
+        "doctor": {
+          "required_outputs": [
+            { "path": "ok", "schema": { "type": "boolean" } },
+            { "path": "checks", "schema": { "type": "object" } },
+            { "path": "warnings", "schema": { "type": "array" } },
+            { "path": "compatibility", "schema": { "type": "object" } },
+            { "path": "status", "schema": { "type": "object" } }
+          ]
+        },
+        "run": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "schedule_id", "schema": { "type": ["string", "null"] } },
+            { "path": "status", "schema": { "enum": ["queued", "leased", "succeeded", "failed", "cancelled", "recoverable"], "type": "string" } },
+            { "path": "error", "schema": { "type": ["string", "null"] } }
+          ]
+        },
+        "runs": { "required_outputs": [] },
+        "schedule": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "enum": ["active", "paused", "archived", "expired"], "type": "string" } },
+            { "path": "mission", "schema": { "type": "string" } },
+            { "path": "cadence", "schema": { "type": "object" } },
+            { "path": "policy", "schema": { "type": "object" } },
+            { "path": "next_run_at", "schema": { "type": ["string", "null"] } },
+            { "path": "version", "schema": { "type": "integer" } }
+          ]
+        },
+        "schedule_history": { "required_outputs": [] },
+        "schedules": { "required_outputs": [] },
+        "system_status": {
+          "required_outputs": [
+            { "path": "integrity", "schema": { "type": "string" } },
+            { "path": "failed_runs", "schema": { "type": "integer" } },
+            { "path": "pending_outbox", "schema": { "type": "integer" } },
+            { "path": "delivery", "schema": { "type": "object" } }
+          ]
+        }
+      },
+      "required_outputs": [],
+      "workflows": ["manage-investment-companion"]
+    },
+    "investment_workflow_update": {
+      "errors": [
+        "capability.input.invalid",
+        "capability.output.invalid",
+        "investment_workflow.version_conflict",
+        "investment_workflow.wake_lease_conflict"
+      ],
+      "input_schema": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "cadence": { "additionalProperties": true, "type": "object" },
+              "dispatch_type": { "enum": ["codex_turn", "deterministic_pipeline"], "type": "string" },
+              "job_definition_id": { "type": "string" },
+              "kind": { "enum": ["patrol", "review", "maintenance", "one_shot"], "type": "string" },
+              "mission": { "type": "string" },
+              "name": { "type": "string" },
+              "operation": { "const": "schedule_create", "type": "string" },
+              "origin": { "additionalProperties": true, "type": "object" },
+              "policy": { "additionalProperties": true, "type": "object" },
+              "scope": { "additionalProperties": true, "type": "object" },
+              "timezone": { "type": "string" }
+            },
+            "required": ["operation", "name", "kind", "mission", "cadence"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "changes": { "additionalProperties": true, "type": "object" },
+              "expected_version": { "type": "integer" },
+              "operation": { "const": "schedule_patch", "type": "string" },
+              "reason": { "type": "string" },
+              "schedule_id": { "type": "string" }
+            },
+            "required": ["operation", "schedule_id", "expected_version", "changes"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "expected_version": { "type": "integer" },
+              "operation": { "const": "schedule_status", "type": "string" },
+              "reason": { "type": "string" },
+              "schedule_id": { "type": "string" },
+              "status": { "const": "active", "type": "string" }
+            },
+            "required": ["operation", "schedule_id", "expected_version", "status"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "expected_version": { "type": "integer" },
+              "operation": { "const": "schedule_status", "type": "string" },
+              "reason": { "type": "string" },
+              "schedule_id": { "type": "string" },
+              "status": { "const": "paused", "type": "string" }
+            },
+            "required": ["operation", "schedule_id", "expected_version", "status"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "expected_version": { "type": "integer" },
+              "operation": { "const": "schedule_status", "type": "string" },
+              "reason": { "type": "string" },
+              "schedule_id": { "type": "string" },
+              "status": { "const": "archived", "type": "string" }
+            },
+            "required": ["operation", "schedule_id", "expected_version", "status"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "schedule_run_now", "type": "string" },
+              "schedule_id": { "type": "string" }
+            },
+            "required": ["operation", "schedule_id"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "run_complete", "type": "string" },
+              "run_id": { "type": "string" },
+              "success": { "const": true, "type": "boolean" }
+            },
+            "required": ["operation", "run_id", "success"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "error": { "type": "string" },
+              "operation": { "const": "run_complete", "type": "string" },
+              "run_id": { "type": "string" },
+              "success": { "const": false, "type": "boolean" }
+            },
+            "required": ["operation", "run_id", "success", "error"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "run_cancel", "type": "string" },
+              "reason": { "type": "string" },
+              "run_id": { "type": "string" }
+            },
+            "required": ["operation", "run_id", "reason"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "lease_seconds": { "maximum": 7200, "minimum": 60, "type": "integer" },
+              "operation": { "const": "wake_claim", "type": "string" },
+              "owner": { "type": "string" }
+            },
+            "required": ["operation", "owner"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "wake_complete", "type": "string" },
+              "outbox_id": { "type": "string" },
+              "owner": { "type": "string" },
+              "success": { "const": true, "type": "boolean" }
+            },
+            "required": ["operation", "outbox_id", "owner", "success"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "error": { "type": "string" },
+              "operation": { "const": "wake_complete", "type": "string" },
+              "outbox_id": { "type": "string" },
+              "owner": { "type": "string" },
+              "success": { "const": false, "type": "boolean" }
+            },
+            "required": ["operation", "outbox_id", "owner", "success", "error"],
+            "type": "object"
+          }
+        ]
+      },
+      "invariants": [
+        "investment_workflow.schedule_mutations_require_current_version/v1",
+        "investment_workflow.wake_lease_is_exclusive/v1"
+      ],
+      "level": "workflow_required",
+      "rationale": "manage-investment-companion creates and changes Schedules through discriminated operations, supplies the current optimistic version for every mutation, records success or failure for Runs, and claims exactly one Wake envelope under a bounded exclusive lease.",
+      "required_operations": {
+        "run_cancel": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "const": "cancelled", "type": "string" } },
+            { "path": "error", "schema": { "type": ["string", "null"] } }
+          ]
+        },
+        "run_complete": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "enum": ["succeeded", "failed"], "type": "string" } },
+            { "path": "finished_at", "schema": { "type": ["string", "null"] } }
+          ]
+        },
+        "schedule_create": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "const": "active", "type": "string" } },
+            { "path": "version", "schema": { "type": "integer" } },
+            { "path": "next_run_at", "schema": { "type": ["string", "null"] } }
+          ]
+        },
+        "schedule_patch": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "version", "schema": { "type": "integer" } },
+            { "path": "updated_at", "schema": { "type": "string" } }
+          ]
+        },
+        "schedule_run_now": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "schedule_id", "schema": { "type": ["string", "null"] } },
+            { "path": "status", "schema": { "enum": ["queued", "leased", "succeeded", "failed", "cancelled", "recoverable"], "type": "string" } }
+          ]
+        },
+        "schedule_status": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "enum": ["active", "paused", "archived", "expired"], "type": "string" } },
+            { "path": "version", "schema": { "type": "integer" } }
+          ]
+        },
+        "wake_claim": { "required_outputs": [] },
+        "wake_complete": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "enum": ["sent", "retry", "dead"], "type": "string" } },
+            { "path": "lease_owner", "schema": { "type": ["string", "null"] } },
+            { "path": "lease_until", "schema": { "type": ["string", "null"] } }
+          ]
+        }
+      },
+      "required_outputs": [],
+      "workflows": ["manage-investment-companion"]
+    },
+    "investment_delivery_update": {
+      "errors": [
+        "capability.input.invalid",
+        "capability.output.invalid",
+        "investment_delivery.immutable",
+        "investment_delivery.state_conflict"
+      ],
+      "input_schema": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "conclusion": { "enum": ["no_action", "action", "risk_action", "review_required", "insufficient_evidence", "system_degraded"], "type": "string" },
+              "delivery_id": { "type": "string" },
+              "key_evidence": { "items": { "type": "string" }, "maxItems": 3, "type": "array" },
+              "next_check_at": { "type": "string" },
+              "next_step": { "type": "string" },
+              "operation": { "const": "prepare", "type": "string" },
+              "source_refs": { "items": { "type": "string" }, "type": "array" },
+              "summary": { "type": "string" }
+            },
+            "required": ["operation", "delivery_id", "conclusion", "summary", "key_evidence", "next_step"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "conclusion": { "enum": ["no_action", "action", "risk_action", "review_required", "insufficient_evidence", "system_degraded"], "type": "string" },
+              "delivery_ids": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "key_evidence": { "items": { "type": "string" }, "maxItems": 3, "type": "array" },
+              "next_check_at": { "type": "string" },
+              "next_step": { "type": "string" },
+              "operation": { "const": "digest_send", "type": "string" },
+              "source_refs": { "items": { "type": "string" }, "type": "array" },
+              "summary": { "type": "string" }
+            },
+            "required": ["operation", "delivery_ids", "conclusion", "summary", "key_evidence", "next_step"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "confidence": { "type": "string" },
+              "event_id": { "type": "string" },
+              "evidence": { "type": "array" },
+              "materiality": { "type": "string" },
+              "operation": { "const": "attention_decide", "type": "string" },
+              "reason": { "type": "string" },
+              "requested_action": { "type": "string" },
+              "topic": { "type": "string" }
+            },
+            "required": ["operation", "topic", "materiality", "confidence", "reason"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "attention_decision_id": { "type": "string" },
+              "operation": { "const": "attention_delivered", "type": "string" }
+            },
+            "required": ["operation", "attention_decision_id"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "attention_decision_id": { "type": "string" },
+              "feedback": { "enum": ["useful", "not_useful", "false_positive", "too_late", "too_frequent"], "type": "string" },
+              "note": { "type": "string" },
+              "operation": { "const": "attention_feedback", "type": "string" }
+            },
+            "required": ["operation", "attention_decision_id", "feedback"],
+            "type": "object"
+          }
+        ]
+      },
+      "invariants": [
+        "investment_delivery.status_is_transport_receipt/v1",
+        "investment_workflow.run_success_is_not_delivery/v1"
+      ],
+      "level": "workflow_required",
+      "rationale": "manage-investment-companion and operate-investment-program freeze immutable required or digest results, preserve retryable transport state, mark Attention delivered only after evidence of delivery, and record feedback without silently changing Attention Policy.",
+      "required_operations": {
+        "attention_decide": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "action", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "type": "string" } }
+          ]
+        },
+        "attention_delivered": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "status", "schema": { "type": "string" } },
+            { "path": "delivered_at", "schema": { "type": ["string", "null"] } }
+          ]
+        },
+        "attention_feedback": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "attention_decision_id", "schema": { "type": "string" } },
+            { "path": "feedback", "schema": { "enum": ["useful", "not_useful", "false_positive", "too_late", "too_frequent"], "type": "string" } },
+            { "path": "policy_change", "schema": { "enum": ["none", "proposal_required"], "type": "string" } }
+          ]
+        },
+        "digest_send": { "required_outputs": [] },
+        "prepare": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "run_id", "schema": { "type": "string" } },
+            { "path": "mode", "schema": { "enum": ["digest_required", "report_required", "action_required"], "type": "string" } },
+            { "path": "status", "schema": { "enum": ["queued_digest", "pending_send", "sending", "delivered", "retry", "failed"], "type": "string" } },
+            { "path": "content_hash", "schema": { "type": ["string", "null"] } },
+            { "path": "outbox_id", "schema": { "type": ["string", "null"] } }
+          ]
+        }
+      },
+      "required_outputs": [],
+      "workflows": ["manage-investment-companion", "operate-investment-program"]
+    },
     "portfolio_context": {
       "errors": [
         "capability.input.invalid",
