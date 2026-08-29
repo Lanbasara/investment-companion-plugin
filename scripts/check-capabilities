@@ -4,7 +4,7 @@ set -euo pipefail
 plugin_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 core_root="${COMPANION_CORE_ROOT:-/home/ghk/investment-home}"
 usage_args=()
-for workflow in research-investment operate-investment-program manage-investment-companion; do
+for workflow in research-investment decide-investment operate-investment-program manage-investment-lifecycle manage-investment-companion; do
   while IFS= read -r -d '' source; do
     usage_args+=(--usage-source "$source")
   done < <(find "$plugin_root/skills/$workflow" -type f -name '*.md' -print0 | sort -z)

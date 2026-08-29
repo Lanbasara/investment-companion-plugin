@@ -32,7 +32,7 @@ description: 统一管理“今天做什么”、投资计划、机会漏斗、�
 
 ## 用户行动
 
-- 呈现、延后、接受、拒绝和关闭统一使用 `investment_action_update(operation="respond")`。用户的后续回复可以作为上一条消息已送达的证据；先用 `investment_delivery_update` 补记 Attention 送达，再记录队列响应。
+- 呈现、延后、接受、拒绝和关闭统一使用 `investment_action_update(operation="respond")`。用户的后续回复可以作为上一条消息已送达的证据；先用 `investment_delivery_update` 补记 Attention 送达，再记录队列响应。延后、接受或拒绝时，把对应用户消息保存为 `user_confirmation_ref`。
 - 接受不代表下单或成交。用户真实手工操作后，使用 `$manage-investment-lifecycle` 记录订单、待确认成交和确认账本。
 - 有效期、账本、价格、Mandate 或 Decision 变化时，旧行动失效；生成新 Decision 和队列项，不修改旧记录。
 
