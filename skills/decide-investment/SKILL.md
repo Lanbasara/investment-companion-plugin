@@ -9,6 +9,10 @@ description: 把已验证研究、人生目标、流动性、确认组合、硬�
 
 Primary Investment Codex 对最终判断负责。推荐、用户选择、券商订单和确认成交是四个独立事实。系统不替用户下单，不把建议或接受行动记录为已执行交易。
 
+## Compatibility Gate
+
+先读取 `investment_home.production_health`。`baseline.status` 不是 `compatible` 时停止形成或发布可信投资判断，并逐项报告 baseline incidents；`workflows.decide-investment.status` 不是 `compatible` 时只停用本工作流，不把失败扩大到已验证的其他工作流。optional enhancement 返回 `fallback` 时执行其声明的 `fallback`，说明降级原因，禁止静默成功。
+
 ## 工作流
 
 1. 先调用 `investment_home`，再用 `investment_program_context`、`portfolio_context` 和 `research_context` 恢复当前计划、确认组合、Investor/Mandate 与研究验证。不从 Markdown 或聊天历史猜精确事实。

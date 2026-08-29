@@ -254,7 +254,7 @@
         }
       },
       "required_outputs": [],
-      "workflows": ["manage-investment-lifecycle", "operate-investment-program"]
+      "workflows": ["decide-investment", "manage-investment-lifecycle", "operate-investment-program"]
     },
     "investment_program_context": {
       "errors": ["capability.input.invalid", "capability.output.invalid"],
@@ -1293,7 +1293,8 @@
         "decide-investment",
         "manage-investment-companion",
         "manage-investment-lifecycle",
-        "operate-investment-program"
+        "operate-investment-program",
+        "research-investment"
       ]
     },
     "investment_transaction_update": {
@@ -4831,7 +4832,8 @@
       "workflows": [
         "decide-investment",
         "manage-investment-lifecycle",
-        "operate-investment-program"
+        "operate-investment-program",
+        "research-investment"
       ]
     }
   },

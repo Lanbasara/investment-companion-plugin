@@ -11,6 +11,10 @@ description: 统一管理“今天做什么”、投资计划、机会漏斗、�
 
 投资计划、研究机会、行动队列和简报是协调层，不是第二套事实。持仓只来自 confirmed Ledger，个人约束只来自 confirmed Context，真实成交始终由用户手工执行并确认。
 
+## Compatibility Gate
+
+读取 `investment_home.production_health` 后，`baseline.status` 不是 `compatible` 时停止可信行动/不行动结论并报告 baseline incidents；`workflows.operate-investment-program.status` 不是 `compatible` 时只停用本工作流，保留其他 compatible 工作流。optional enhancement 返回 `fallback` 时执行其声明的 `fallback`，说明降级原因，禁止静默成功。
+
 ## 每次进入
 
 1. 先调用 `investment_home`，不根据聊天历史猜测当前状态。
