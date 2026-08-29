@@ -1,5 +1,409 @@
 {
   "capabilities": {
+    "decision_context": {
+      "errors": ["capability.input.invalid", "capability.output.invalid"],
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": { "maximum": 100, "minimum": 1, "type": "integer" }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "invariants": [
+        "action_card.acceptance_never_changes_portfolio/v1",
+        "decision.research_validation_is_not_decision/v1"
+      ],
+      "level": "workflow_required",
+      "rationale": "decide-investment and manage-investment-lifecycle restore exact Decision revisions; operate-investment-program reads current Action Cards, validity, blockers, alternatives and the manual execution boundary.",
+      "required_outputs": [
+        { "path": "schema", "schema": { "const": "investment-companion.decision-context/v1", "type": "string" } },
+        { "path": "as_of", "schema": { "type": "string" } },
+        { "path": "queue", "schema": { "type": "array" } },
+        { "path": "action_cards", "schema": { "type": "array" } },
+        { "path": "recent_decisions", "schema": { "type": "array" } },
+        { "path": "executions", "schema": { "type": "array" } },
+        { "path": "execution_boundary.mode", "schema": { "const": "human_manual_only", "type": "string" } },
+        { "path": "execution_boundary.accepted_action_card_is_order", "schema": { "const": false, "type": "boolean" } },
+        { "path": "execution_boundary.reported_fill_changes_portfolio", "schema": { "const": false, "type": "boolean" } },
+        { "path": "execution_boundary.confirmed_ledger_fill_changes_portfolio", "schema": { "const": true, "type": "boolean" } }
+      ],
+      "workflows": ["decide-investment", "manage-investment-lifecycle", "operate-investment-program"]
+    },
+    "investment_action_plan": {
+      "errors": ["capability.input.invalid", "capability.output.invalid"],
+      "input_schema": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "action_tier": { "const": "bounded", "type": "string" },
+              "account_id": { "type": "string" },
+              "as_of": { "type": "string" },
+              "asset_id": { "type": "string" },
+              "average_daily_amount": {},
+              "fee": {},
+              "market_snapshot_id": { "type": "string" },
+              "max_market_age_seconds": { "minimum": 1, "type": "integer" },
+              "price": {},
+              "price_range": { "additionalProperties": true, "type": "object" },
+              "quantity": {},
+              "reality_spec": { "additionalProperties": true, "type": "object" },
+              "valid_until": { "type": "string" },
+              "validity_sessions": { "enum": [5, 20, 60, 180], "type": "integer" }
+            },
+            "required": ["action_tier", "as_of", "account_id", "asset_id", "quantity", "price", "reality_spec", "market_snapshot_id", "max_market_age_seconds", "valid_until", "price_range", "validity_sessions"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "action_tier": { "const": "standard", "type": "string" },
+              "account_id": { "type": "string" },
+              "as_of": { "type": "string" },
+              "asset_id": { "type": "string" },
+              "average_daily_amount": {},
+              "fee": {},
+              "market_snapshot_id": { "type": "string" },
+              "max_market_age_seconds": { "minimum": 1, "type": "integer" },
+              "price": {},
+              "price_range": { "additionalProperties": true, "type": "object" },
+              "quantity": {},
+              "reality_spec": { "additionalProperties": true, "type": "object" },
+              "valid_until": { "type": "string" }
+            },
+            "required": ["action_tier", "as_of", "account_id", "asset_id", "quantity", "price", "reality_spec", "market_snapshot_id", "max_market_age_seconds", "valid_until", "price_range"],
+            "type": "object"
+          }
+        ]
+      },
+      "invariants": ["investment_action_plan.risk_gate_is_veto_not_thesis/v1"],
+      "level": "workflow_required",
+      "rationale": "decide-investment and manage-investment-lifecycle use deterministic portfolio and execution inputs for standard sizing or the separately qualified bounded lane; neither asks Risk Gate to judge the Thesis.",
+      "required_operations": {
+        "bounded": {
+          "required_outputs": [
+            { "path": "action.validity_sessions", "schema": {} },
+            { "path": "risk.status", "schema": { "enum": ["pass", "blocked"], "type": "string" } },
+            { "path": "risk.blocked", "schema": { "type": "boolean" } },
+            { "path": "risk.violations", "schema": { "type": "array" } },
+            { "path": "risk.calculation_id", "schema": { "type": "string" } },
+            { "path": "action_tier", "schema": { "enum": ["standard", "bounded"], "type": "string" } },
+            { "path": "eligible_for_conditional_decision", "schema": { "type": "boolean" } },
+            { "path": "automatic_decision_or_execution", "schema": { "const": false, "type": "boolean" } }
+          ]
+        },
+        "standard": {
+          "required_outputs": [
+            { "path": "action.account_id", "schema": { "type": "string" } },
+            { "path": "action.asset_id", "schema": { "type": "string" } },
+            { "path": "action.side", "schema": { "enum": ["buy", "sell"], "type": "string" } },
+            { "path": "action.quantity", "schema": { "type": "string" } },
+            { "path": "action.price_range", "schema": { "type": "object" } },
+            { "path": "action.valid_until", "schema": { "type": "string" } },
+            { "path": "risk.status", "schema": { "enum": ["pass", "blocked"], "type": "string" } },
+            { "path": "risk.blocked", "schema": { "type": "boolean" } },
+            { "path": "risk.violations", "schema": { "type": "array" } },
+            { "path": "risk.calculation_id", "schema": { "type": "string" } },
+            { "path": "risk.portfolio_calculation_id", "schema": { "type": "string" } },
+            { "path": "risk.market_snapshot_id", "schema": {} },
+            { "path": "precision_boundary.precise_position_advice_allowed", "schema": { "type": "boolean" } },
+            { "path": "truth_freshness.status", "schema": { "type": "string" } },
+            { "path": "eligible_for_decision", "schema": { "type": "boolean" } },
+            { "path": "decision_blockers", "schema": { "type": "array" } },
+            { "path": "automatic_decision_or_execution", "schema": { "const": false, "type": "boolean" } }
+          ]
+        }
+      },
+      "required_outputs": [
+        { "path": "schema", "schema": { "const": "investment-companion.portfolio-action-plan/v1", "type": "string" } },
+        { "path": "action_tier", "schema": { "enum": ["standard", "bounded"], "type": "string" } }
+      ],
+      "workflows": ["decide-investment", "manage-investment-lifecycle"]
+    },
+    "investment_action_update": {
+      "errors": ["capability.input.invalid", "capability.output.invalid"],
+      "input_schema": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "decision_revision_id": { "type": "string" },
+              "idempotency_key": { "type": "string" },
+              "manual_action_spec_id": { "type": "string" },
+              "operation": { "const": "enqueue", "type": "string" },
+              "opportunity_id": { "type": "string" },
+              "valid_until": { "type": "string" }
+            },
+            "required": ["operation", "opportunity_id", "decision_revision_id"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "attention_decision_id": { "type": "string" },
+              "operation": { "const": "respond", "type": "string" },
+              "queue_id": { "type": "string" },
+              "state": { "const": "presented", "type": "string" }
+            },
+            "required": ["operation", "queue_id", "state", "attention_decision_id"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "respond", "type": "string" },
+              "queue_id": { "type": "string" },
+              "state": { "const": "accepted", "type": "string" },
+              "user_confirmation_ref": { "type": "string" }
+            },
+            "required": ["operation", "queue_id", "state", "user_confirmation_ref"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "respond", "type": "string" },
+              "queue_id": { "type": "string" },
+              "reason": { "type": "string" },
+              "state": { "const": "rejected", "type": "string" },
+              "user_confirmation_ref": { "type": "string" }
+            },
+            "required": ["operation", "queue_id", "state", "reason", "user_confirmation_ref"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "respond", "type": "string" },
+              "queue_id": { "type": "string" },
+              "reason": { "type": "string" },
+              "snoozed_until": { "type": "string" },
+              "state": { "const": "snoozed", "type": "string" },
+              "user_confirmation_ref": { "type": "string" }
+            },
+            "required": ["operation", "queue_id", "state", "reason", "snoozed_until", "user_confirmation_ref"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": { "const": "respond", "type": "string" },
+              "queue_id": { "type": "string" },
+              "reason": { "type": "string" },
+              "state": { "const": "closed", "type": "string" }
+            },
+            "required": ["operation", "queue_id", "state", "reason"],
+            "type": "object"
+          }
+        ]
+      },
+      "invariants": ["action_card.acceptance_never_changes_portfolio/v1"],
+      "level": "workflow_required",
+      "rationale": "operate-investment-program enqueues only active actionable Opportunities and records presentation or an explicitly referenced user accept, reject or snooze response; manage-investment-lifecycle relies on acceptance remaining separate from Execution and Ledger.",
+      "required_operations": {
+        "accepted": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "state", "schema": { "const": "accepted", "type": "string" } },
+            { "path": "decision_revision_id", "schema": { "type": "string" } },
+            { "path": "responded_at", "schema": {} },
+            { "path": "user_confirmation_ref", "schema": { "type": "string" } }
+          ]
+        },
+        "closed": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "state", "schema": { "const": "closed", "type": "string" } },
+            { "path": "response_reason", "schema": {} }
+          ]
+        },
+        "enqueue": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "state", "schema": { "const": "ready", "type": "string" } },
+            { "path": "opportunity_id", "schema": { "type": "string" } },
+            { "path": "decision_revision_id", "schema": { "type": "string" } },
+            { "path": "valid_until", "schema": { "type": "string" } },
+            { "path": "idempotency_key", "schema": { "type": "string" } }
+          ]
+        },
+        "presented": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "state", "schema": { "const": "presented", "type": "string" } },
+            { "path": "attention_decision_id", "schema": {} },
+            { "path": "presented_at", "schema": {} }
+          ]
+        },
+        "rejected": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "state", "schema": { "const": "rejected", "type": "string" } },
+            { "path": "response_reason", "schema": {} },
+            { "path": "user_confirmation_ref", "schema": { "type": "string" } }
+          ]
+        },
+        "snoozed": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "state", "schema": { "const": "snoozed", "type": "string" } },
+            { "path": "snoozed_until", "schema": {} },
+            { "path": "user_confirmation_ref", "schema": { "type": "string" } }
+          ]
+        }
+      },
+      "required_outputs": [],
+      "workflows": ["manage-investment-lifecycle", "operate-investment-program"]
+    },
+    "investment_decision_publish": {
+      "errors": ["capability.input.invalid", "capability.output.invalid"],
+      "input_schema": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "account_id": { "type": "string" },
+              "alternatives": { "items": { "additionalProperties": true, "type": "object" }, "minItems": 1, "type": "array" },
+              "as_of": { "type": "string" },
+              "content": { "type": "string" },
+              "decision_kind": { "const": "action", "type": "string" },
+              "evidence_manifest_ids": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "execution_plan": { "additionalProperties": true, "type": "object" },
+              "execution_sell_risk_calculation_id": { "type": "string" },
+              "invalidators": { "items": { "type": "string" }, "minItems": 1, "type": "array" },
+              "knowledge_cutoff": { "type": "string" },
+              "no_action": { "additionalProperties": true, "type": "object" },
+              "prices": { "additionalProperties": true, "type": "object" },
+              "research_validation_calculation_id": { "type": "string" },
+              "risk_calculation_id": { "type": "string" },
+              "subject": { "additionalProperties": true, "type": "object" },
+              "thesis_revision_ids": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "valid_until": { "type": "string" }
+            },
+            "required": ["subject", "content", "decision_kind", "account_id", "as_of", "knowledge_cutoff", "valid_until", "thesis_revision_ids", "evidence_manifest_ids", "invalidators", "no_action", "alternatives", "risk_calculation_id", "research_validation_calculation_id"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "account_id": { "type": "string" },
+              "alternatives": { "items": { "additionalProperties": true, "type": "object" }, "minItems": 1, "type": "array" },
+              "as_of": { "type": "string" },
+              "content": { "type": "string" },
+              "decision_kind": { "const": "conditional_action", "type": "string" },
+              "evidence_manifest_ids": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "execution_plan": { "additionalProperties": true, "type": "object" },
+              "execution_sell_risk_calculation_id": { "type": "string" },
+              "invalidators": { "items": { "type": "string" }, "minItems": 1, "type": "array" },
+              "knowledge_cutoff": { "type": "string" },
+              "no_action": { "additionalProperties": true, "type": "object" },
+              "prices": { "additionalProperties": true, "type": "object" },
+              "research_validation_calculation_id": { "type": "string" },
+              "risk_calculation_id": { "type": "string" },
+              "subject": { "additionalProperties": true, "type": "object" },
+              "thesis_revision_ids": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "valid_until": { "type": "string" }
+            },
+            "required": ["subject", "content", "decision_kind", "account_id", "as_of", "knowledge_cutoff", "valid_until", "thesis_revision_ids", "evidence_manifest_ids", "invalidators", "no_action", "alternatives", "risk_calculation_id", "research_validation_calculation_id"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "account_id": { "type": "string" },
+              "alternatives": { "items": { "additionalProperties": true, "type": "object" }, "minItems": 1, "type": "array" },
+              "as_of": { "type": "string" },
+              "content": { "type": "string" },
+              "decision_kind": { "const": "no_action", "type": "string" },
+              "evidence_manifest_ids": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "invalidators": { "items": { "type": "string" }, "minItems": 1, "type": "array" },
+              "knowledge_cutoff": { "type": "string" },
+              "no_action": { "additionalProperties": true, "type": "object" },
+              "prices": { "additionalProperties": true, "type": "object" },
+              "subject": { "additionalProperties": true, "type": "object" },
+              "thesis_revision_ids": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "valid_until": { "type": "string" }
+            },
+            "required": ["subject", "content", "decision_kind", "account_id", "as_of", "knowledge_cutoff", "valid_until", "thesis_revision_ids", "evidence_manifest_ids", "invalidators", "no_action", "alternatives"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "account_id": { "type": "string" },
+              "alternatives": { "items": { "additionalProperties": true, "type": "object" }, "minItems": 1, "type": "array" },
+              "as_of": { "type": "string" },
+              "content": { "type": "string" },
+              "decision_kind": { "const": "watch", "type": "string" },
+              "evidence_manifest_ids": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "invalidators": { "items": { "type": "string" }, "minItems": 1, "type": "array" },
+              "knowledge_cutoff": { "type": "string" },
+              "no_action": { "additionalProperties": true, "type": "object" },
+              "prices": { "additionalProperties": true, "type": "object" },
+              "subject": { "additionalProperties": true, "type": "object" },
+              "thesis_revision_ids": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "valid_until": { "type": "string" }
+            },
+            "required": ["subject", "content", "decision_kind", "account_id", "as_of", "knowledge_cutoff", "valid_until", "thesis_revision_ids", "evidence_manifest_ids", "invalidators", "no_action", "alternatives"],
+            "type": "object"
+          }
+        ]
+      },
+      "invariants": ["decision.research_validation_is_not_decision/v1"],
+      "level": "workflow_required",
+      "rationale": "decide-investment and manage-investment-lifecycle publish one time-bounded Decision with exact Thesis, Evidence, Context, Portfolio, alternatives and invalidators; action variants additionally require a matching eligible Research Validation and passing Risk Gate.",
+      "required_operations": {
+        "bounded_action": {
+          "required_outputs": [
+            { "path": "revision.metadata.decision_kind", "schema": { "enum": ["action", "conditional_action", "no_action", "watch"], "type": "string" } },
+            { "path": "revision.metadata.action_tier", "schema": {} },
+            { "path": "revision.metadata.risk_calculation_id", "schema": {} },
+            { "path": "revision.metadata.research_validation_calculation_id", "schema": {} }
+          ]
+        },
+        "no_action": {
+          "required_outputs": [
+            { "path": "revision.metadata.no_action", "schema": { "type": "object" } },
+            { "path": "revision.metadata.alternatives", "schema": { "type": "array" } }
+          ]
+        },
+        "standard_action": {
+          "required_outputs": [
+            { "path": "decision.id", "schema": { "type": "string" } },
+            { "path": "decision.status", "schema": { "const": "issued", "type": "string" } },
+            { "path": "revision.id", "schema": { "type": "string" } },
+            { "path": "revision.knowledge_cutoff", "schema": { "type": "string" } },
+            { "path": "revision.context_refs.investor_revision_id", "schema": { "type": "string" } },
+            { "path": "revision.context_refs.mandate_revision_id", "schema": { "type": "string" } },
+            { "path": "revision.context_refs.portfolio_calculation_id", "schema": { "type": "string" } },
+            { "path": "revision.context_refs.thesis_revision_ids", "schema": { "type": "array" } },
+            { "path": "revision.metadata.valid_until", "schema": { "type": "string" } },
+            { "path": "revision.metadata.invalidators", "schema": { "type": "array" } },
+            { "path": "revision.metadata.no_action", "schema": { "type": "object" } },
+            { "path": "revision.metadata.alternatives", "schema": { "type": "array" } },
+            { "path": "revision.metadata.source_refs", "schema": { "type": "array" } },
+            { "path": "revision.metadata.risk_calculation_id", "schema": {} },
+            { "path": "revision.metadata.research_validation_calculation_id", "schema": {} },
+            { "path": "revision.metadata.confirmed_ledger_hash", "schema": { "type": "string" } },
+            { "path": "revision.metadata.human_execution_only", "schema": { "const": true, "type": "boolean" } },
+            { "path": "revision.metadata.automatic_trade", "schema": { "const": false, "type": "boolean" } },
+            { "path": "revision.metadata.published_at", "schema": { "type": "string" } },
+            { "path": "portfolio_calculation_id", "schema": { "type": "string" } },
+            { "path": "risk_calculation_id", "schema": {} },
+            { "path": "research_validation_calculation_id", "schema": {} }
+          ]
+        },
+        "watch": {
+          "required_outputs": [
+            { "path": "revision.metadata.valid_until", "schema": { "type": "string" } },
+            { "path": "revision.metadata.invalidators", "schema": { "type": "array" } }
+          ]
+        }
+      },
+      "required_outputs": [],
+      "workflows": ["decide-investment", "manage-investment-lifecycle"]
+    },
     "investment_evidence_update": {
       "errors": [
         "capability.input.invalid",
