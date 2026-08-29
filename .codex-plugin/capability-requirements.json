@@ -1491,6 +1491,2489 @@
       "required_outputs": [],
       "workflows": ["decide-investment", "manage-investment-lifecycle"]
     },
+    "investment_execution_update": {
+      "errors": [
+        "capability.input.invalid",
+        "capability.output.invalid",
+        "investment_execution.state_conflict",
+        "investment_execution.idempotency_conflict",
+        "investment_execution.reconciliation_required"
+      ],
+      "input_schema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "cancel"
+              },
+              "execution_id": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "execution_id",
+              "reason"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "confirm_fill"
+              },
+              "execution_id": {
+                "type": "string"
+              },
+              "entry_id": {
+                "type": "string"
+              },
+              "final": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "operation",
+              "execution_id",
+              "entry_id",
+              "final"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "order"
+              },
+              "execution_id": {
+                "type": "string"
+              },
+              "broker_order_ref": {
+                "type": "string"
+              },
+              "ordered_at": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "execution_id",
+              "broker_order_ref",
+              "ordered_at"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "prepare"
+              },
+              "queue_id": {
+                "type": "string"
+              },
+              "idempotency_key": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "queue_id",
+              "idempotency_key"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "report_fill"
+              },
+              "execution_id": {
+                "type": "string"
+              },
+              "occurred_at": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "price": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "fee": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "source": {
+                "type": "string"
+              },
+              "external_id": {
+                "type": "string"
+              },
+              "settled_at": {
+                "type": "string"
+              },
+              "final": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "operation",
+              "execution_id",
+              "occurred_at",
+              "quantity",
+              "price",
+              "fee",
+              "source"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_activate"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "occurred_at": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "occurred_at"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_configured"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "broker_condition_ref": {
+                "type": "string"
+              },
+              "configured_at": {
+                "type": "string"
+              },
+              "broker_validity_sessions": {
+                "type": "integer",
+                "enum": [
+                  5,
+                  20,
+                  60,
+                  180
+                ]
+              },
+              "broker_valid_until": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "broker_condition_ref",
+              "configured_at",
+              "broker_validity_sessions",
+              "broker_valid_until"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_create"
+              },
+              "queue_id": {
+                "type": "string"
+              },
+              "plan_type": {
+                "type": "string",
+                "const": "bracket_exit"
+              },
+              "spec": {
+                "type": "object",
+                "properties": {
+                  "account_id": {
+                    "type": "string"
+                  },
+                  "asset_id": {
+                    "type": "string"
+                  },
+                  "validity_sessions": {
+                    "type": "integer",
+                    "enum": [
+                      5,
+                      20,
+                      60,
+                      180
+                    ]
+                  },
+                  "monitoring_window": {
+                    "oneOf": [
+                      {
+                        "type": "null"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "weekdays": {
+                            "type": "array",
+                            "items": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 7
+                            },
+                            "minItems": 1,
+                            "maxItems": 7,
+                            "uniqueItems": true
+                          },
+                          "start": {
+                            "type": "string"
+                          },
+                          "end": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "weekdays",
+                          "start",
+                          "end"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "base_price": {
+                    "type": [
+                      "string",
+                      "integer",
+                      "number"
+                    ]
+                  },
+                  "take_profit": {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "price",
+                          "percentage"
+                        ]
+                      },
+                      "value": {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "stop_loss": {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "price",
+                          "percentage"
+                        ]
+                      },
+                      "value": {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "order": {
+                    "type": "object",
+                    "properties": {
+                      "price_type": {
+                        "type": "string",
+                        "enum": [
+                          "limit",
+                          "market"
+                        ]
+                      },
+                      "price_instruction": {
+                        "type": "string",
+                        "enum": [
+                          "custom",
+                          "instant",
+                          "buy_1",
+                          "buy_2",
+                          "buy_3",
+                          "buy_4",
+                          "buy_5",
+                          "sell_1",
+                          "sell_2",
+                          "sell_3",
+                          "sell_4",
+                          "sell_5",
+                          "exchange_market_option"
+                        ]
+                      },
+                      "custom_price": {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "price_type",
+                      "price_instruction",
+                      "custom_price"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "quantity": {
+                    "oneOf": [
+                      {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "mode": {
+                            "type": "string",
+                            "const": "holding_fraction"
+                          },
+                          "fraction": {
+                            "type": "string",
+                            "enum": [
+                              "1",
+                              "1/2",
+                              "1/3",
+                              "1/4"
+                            ]
+                          },
+                          "resolved_quantity": {
+                            "type": [
+                              "string",
+                              "integer",
+                              "number"
+                            ]
+                          },
+                          "holding_quantity_at_configuration": {
+                            "type": [
+                              "string",
+                              "integer",
+                              "number"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "mode",
+                          "fraction",
+                          "resolved_quantity",
+                          "holding_quantity_at_configuration"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "effective_trigger_band_pct": {
+                    "type": [
+                      "string",
+                      "integer",
+                      "number"
+                    ]
+                  },
+                  "delay_confirmation": {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "consecutive",
+                          "cumulative"
+                        ]
+                      },
+                      "count": {
+                        "type": "integer",
+                        "minimum": 2,
+                        "maximum": 20
+                      },
+                      "separate_take_profit_stop_loss_counters": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "count",
+                      "separate_take_profit_stop_loss_counters"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "account_id",
+                  "asset_id",
+                  "validity_sessions",
+                  "monitoring_window",
+                  "base_price",
+                  "take_profit",
+                  "stop_loss",
+                  "order",
+                  "quantity"
+                ],
+                "additionalProperties": false
+              },
+              "valid_until": {
+                "type": "string"
+              },
+              "idempotency_key": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "queue_id",
+              "plan_type",
+              "spec",
+              "valid_until",
+              "idempotency_key"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_create"
+              },
+              "queue_id": {
+                "type": "string"
+              },
+              "plan_type": {
+                "type": "string",
+                "const": "moving_grid"
+              },
+              "spec": {
+                "type": "object",
+                "properties": {
+                  "account_id": {
+                    "type": "string"
+                  },
+                  "asset_id": {
+                    "type": "string"
+                  },
+                  "validity_sessions": {
+                    "type": "integer",
+                    "enum": [
+                      5,
+                      20,
+                      60,
+                      180
+                    ]
+                  },
+                  "monitoring_window": {
+                    "oneOf": [
+                      {
+                        "type": "null"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "weekdays": {
+                            "type": "array",
+                            "items": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 7
+                            },
+                            "minItems": 1,
+                            "maxItems": 7,
+                            "uniqueItems": true
+                          },
+                          "start": {
+                            "type": "string"
+                          },
+                          "end": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "weekdays",
+                          "start",
+                          "end"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "initial_reference_price": {
+                    "type": [
+                      "string",
+                      "integer",
+                      "number"
+                    ]
+                  },
+                  "spacing_type": {
+                    "type": "string",
+                    "enum": [
+                      "difference",
+                      "percentage"
+                    ]
+                  },
+                  "rise_sell_spacing": {
+                    "type": [
+                      "string",
+                      "integer",
+                      "number"
+                    ]
+                  },
+                  "fall_buy_spacing": {
+                    "type": [
+                      "string",
+                      "integer",
+                      "number"
+                    ]
+                  },
+                  "sell_order": {
+                    "type": "object",
+                    "properties": {
+                      "price_type": {
+                        "type": "string",
+                        "enum": [
+                          "limit",
+                          "market"
+                        ]
+                      },
+                      "price_instruction": {
+                        "type": "string",
+                        "enum": [
+                          "custom",
+                          "instant",
+                          "buy_1",
+                          "buy_2",
+                          "buy_3",
+                          "buy_4",
+                          "buy_5",
+                          "sell_1",
+                          "sell_2",
+                          "sell_3",
+                          "sell_4",
+                          "sell_5",
+                          "exchange_market_option"
+                        ]
+                      },
+                      "custom_price": {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "price_type",
+                      "price_instruction",
+                      "custom_price"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "buy_order": {
+                    "type": "object",
+                    "properties": {
+                      "price_type": {
+                        "type": "string",
+                        "enum": [
+                          "limit",
+                          "market"
+                        ]
+                      },
+                      "price_instruction": {
+                        "type": "string",
+                        "enum": [
+                          "custom",
+                          "instant",
+                          "buy_1",
+                          "buy_2",
+                          "buy_3",
+                          "buy_4",
+                          "buy_5",
+                          "sell_1",
+                          "sell_2",
+                          "sell_3",
+                          "sell_4",
+                          "sell_5",
+                          "exchange_market_option"
+                        ]
+                      },
+                      "custom_price": {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "price_type",
+                      "price_instruction",
+                      "custom_price"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "sell_quantity": {
+                    "type": [
+                      "string",
+                      "integer",
+                      "number"
+                    ]
+                  },
+                  "buy_quantity": {
+                    "type": [
+                      "string",
+                      "integer",
+                      "number"
+                    ]
+                  },
+                  "price_range": {
+                    "type": "object",
+                    "properties": {
+                      "lower": {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number"
+                        ]
+                      },
+                      "upper": {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number"
+                        ]
+                      },
+                      "out_of_range_behavior": {
+                        "type": "string",
+                        "enum": [
+                          "sleep",
+                          "terminate_and_liquidate"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "lower",
+                      "upper",
+                      "out_of_range_behavior"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "position_range": {
+                    "type": "object",
+                    "properties": {
+                      "max_net_buy": {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number"
+                        ]
+                      },
+                      "max_net_sell": {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "max_net_buy",
+                      "max_net_sell"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "multiple_grid_order": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "account_id",
+                  "asset_id",
+                  "validity_sessions",
+                  "monitoring_window",
+                  "initial_reference_price",
+                  "spacing_type",
+                  "rise_sell_spacing",
+                  "fall_buy_spacing",
+                  "sell_order",
+                  "buy_order",
+                  "sell_quantity",
+                  "buy_quantity",
+                  "price_range",
+                  "position_range",
+                  "multiple_grid_order"
+                ],
+                "additionalProperties": false
+              },
+              "valid_until": {
+                "type": "string"
+              },
+              "idempotency_key": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "queue_id",
+              "plan_type",
+              "spec",
+              "valid_until",
+              "idempotency_key"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_create"
+              },
+              "queue_id": {
+                "type": "string"
+              },
+              "plan_type": {
+                "type": "string",
+                "const": "priced_buy"
+              },
+              "spec": {
+                "type": "object",
+                "properties": {
+                  "account_id": {
+                    "type": "string"
+                  },
+                  "asset_id": {
+                    "type": "string"
+                  },
+                  "validity_sessions": {
+                    "type": "integer",
+                    "enum": [
+                      5,
+                      20,
+                      60,
+                      180
+                    ]
+                  },
+                  "monitoring_window": {
+                    "oneOf": [
+                      {
+                        "type": "null"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "weekdays": {
+                            "type": "array",
+                            "items": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 7
+                            },
+                            "minItems": 1,
+                            "maxItems": 7,
+                            "uniqueItems": true
+                          },
+                          "start": {
+                            "type": "string"
+                          },
+                          "end": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "weekdays",
+                          "start",
+                          "end"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "trigger": {
+                    "type": "object",
+                    "properties": {
+                      "direction": {
+                        "type": "string",
+                        "enum": [
+                          "cross_up",
+                          "cross_down"
+                        ]
+                      },
+                      "monitor_price": {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "direction",
+                      "monitor_price"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "order": {
+                    "type": "object",
+                    "properties": {
+                      "price_type": {
+                        "type": "string",
+                        "enum": [
+                          "limit",
+                          "market"
+                        ]
+                      },
+                      "price_instruction": {
+                        "type": "string",
+                        "enum": [
+                          "custom",
+                          "instant",
+                          "buy_1",
+                          "buy_2",
+                          "buy_3",
+                          "buy_4",
+                          "buy_5",
+                          "sell_1",
+                          "sell_2",
+                          "sell_3",
+                          "sell_4",
+                          "sell_5",
+                          "exchange_market_option"
+                        ]
+                      },
+                      "custom_price": {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "price_type",
+                      "price_instruction",
+                      "custom_price"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "quantity": {
+                    "type": [
+                      "string",
+                      "integer",
+                      "number"
+                    ]
+                  },
+                  "effective_trigger_band_pct": {
+                    "type": [
+                      "string",
+                      "integer",
+                      "number"
+                    ]
+                  },
+                  "delay_confirmation": {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "consecutive",
+                          "cumulative"
+                        ]
+                      },
+                      "count": {
+                        "type": "integer",
+                        "minimum": 2,
+                        "maximum": 20
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "count"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "account_id",
+                  "asset_id",
+                  "validity_sessions",
+                  "monitoring_window",
+                  "trigger",
+                  "order",
+                  "quantity"
+                ],
+                "additionalProperties": false
+              },
+              "valid_until": {
+                "type": "string"
+              },
+              "idempotency_key": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "queue_id",
+              "plan_type",
+              "spec",
+              "valid_until",
+              "idempotency_key"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_create"
+              },
+              "queue_id": {
+                "type": "string"
+              },
+              "plan_type": {
+                "type": "string",
+                "const": "priced_sell"
+              },
+              "spec": {
+                "type": "object",
+                "properties": {
+                  "account_id": {
+                    "type": "string"
+                  },
+                  "asset_id": {
+                    "type": "string"
+                  },
+                  "validity_sessions": {
+                    "type": "integer",
+                    "enum": [
+                      5,
+                      20,
+                      60,
+                      180
+                    ]
+                  },
+                  "monitoring_window": {
+                    "oneOf": [
+                      {
+                        "type": "null"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "weekdays": {
+                            "type": "array",
+                            "items": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 7
+                            },
+                            "minItems": 1,
+                            "maxItems": 7,
+                            "uniqueItems": true
+                          },
+                          "start": {
+                            "type": "string"
+                          },
+                          "end": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "weekdays",
+                          "start",
+                          "end"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "trigger": {
+                    "type": "object",
+                    "properties": {
+                      "direction": {
+                        "type": "string",
+                        "enum": [
+                          "cross_up",
+                          "cross_down"
+                        ]
+                      },
+                      "monitor_price": {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "direction",
+                      "monitor_price"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "order": {
+                    "type": "object",
+                    "properties": {
+                      "price_type": {
+                        "type": "string",
+                        "enum": [
+                          "limit",
+                          "market"
+                        ]
+                      },
+                      "price_instruction": {
+                        "type": "string",
+                        "enum": [
+                          "custom",
+                          "instant",
+                          "buy_1",
+                          "buy_2",
+                          "buy_3",
+                          "buy_4",
+                          "buy_5",
+                          "sell_1",
+                          "sell_2",
+                          "sell_3",
+                          "sell_4",
+                          "sell_5",
+                          "exchange_market_option"
+                        ]
+                      },
+                      "custom_price": {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "price_type",
+                      "price_instruction",
+                      "custom_price"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "quantity": {
+                    "oneOf": [
+                      {
+                        "type": [
+                          "string",
+                          "integer",
+                          "number"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "mode": {
+                            "type": "string",
+                            "const": "holding_fraction"
+                          },
+                          "fraction": {
+                            "type": "string",
+                            "enum": [
+                              "1",
+                              "1/2",
+                              "1/3",
+                              "1/4"
+                            ]
+                          },
+                          "resolved_quantity": {
+                            "type": [
+                              "string",
+                              "integer",
+                              "number"
+                            ]
+                          },
+                          "holding_quantity_at_configuration": {
+                            "type": [
+                              "string",
+                              "integer",
+                              "number"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "mode",
+                          "fraction",
+                          "resolved_quantity",
+                          "holding_quantity_at_configuration"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "effective_trigger_band_pct": {
+                    "type": [
+                      "string",
+                      "integer",
+                      "number"
+                    ]
+                  },
+                  "delay_confirmation": {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "consecutive",
+                          "cumulative"
+                        ]
+                      },
+                      "count": {
+                        "type": "integer",
+                        "minimum": 2,
+                        "maximum": 20
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "count"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "account_id",
+                  "asset_id",
+                  "validity_sessions",
+                  "monitoring_window",
+                  "trigger",
+                  "order",
+                  "quantity"
+                ],
+                "additionalProperties": false
+              },
+              "valid_until": {
+                "type": "string"
+              },
+              "idempotency_key": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "queue_id",
+              "plan_type",
+              "spec",
+              "valid_until",
+              "idempotency_key"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_etf_dividend"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "occurred_at": {
+                "type": "string"
+              },
+              "corporate_action_ref": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "occurred_at",
+              "corporate_action_ref"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_exception"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "occurred_at": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "occurred_at",
+              "reason"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_order_report"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "broker_order_ref": {
+                "type": "string"
+              },
+              "side": {
+                "type": "string",
+                "enum": [
+                  "buy",
+                  "sell"
+                ]
+              },
+              "quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "triggered_at": {
+                "type": "string"
+              },
+              "trigger_price": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_before": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_after": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "rejection_reason": {
+                "type": "string"
+              },
+              "cancelled_quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "condition_leg": {
+                "type": "string",
+                "enum": [
+                  "take_profit",
+                  "stop_loss"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "const": "triggered"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "broker_order_ref",
+              "side",
+              "quantity",
+              "status",
+              "triggered_at"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_order_report"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "broker_order_ref": {
+                "type": "string"
+              },
+              "side": {
+                "type": "string",
+                "enum": [
+                  "buy",
+                  "sell"
+                ]
+              },
+              "quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "triggered_at": {
+                "type": "string"
+              },
+              "trigger_price": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_before": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_after": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "rejection_reason": {
+                "type": "string"
+              },
+              "cancelled_quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "condition_leg": {
+                "type": "string",
+                "enum": [
+                  "take_profit",
+                  "stop_loss"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "const": "submitted"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "broker_order_ref",
+              "side",
+              "quantity",
+              "status",
+              "triggered_at"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_order_report"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "broker_order_ref": {
+                "type": "string"
+              },
+              "side": {
+                "type": "string",
+                "enum": [
+                  "buy",
+                  "sell"
+                ]
+              },
+              "quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "triggered_at": {
+                "type": "string"
+              },
+              "trigger_price": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_before": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_after": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "rejection_reason": {
+                "type": "string"
+              },
+              "cancelled_quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "condition_leg": {
+                "type": "string",
+                "enum": [
+                  "take_profit",
+                  "stop_loss"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "const": "partially_filled"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "broker_order_ref",
+              "side",
+              "quantity",
+              "status",
+              "triggered_at",
+              "cancelled_quantity"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_order_report"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "broker_order_ref": {
+                "type": "string"
+              },
+              "side": {
+                "type": "string",
+                "enum": [
+                  "buy",
+                  "sell"
+                ]
+              },
+              "quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "triggered_at": {
+                "type": "string"
+              },
+              "trigger_price": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_before": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_after": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "rejection_reason": {
+                "type": "string"
+              },
+              "cancelled_quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "condition_leg": {
+                "type": "string",
+                "enum": [
+                  "take_profit",
+                  "stop_loss"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "const": "filled"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "broker_order_ref",
+              "side",
+              "quantity",
+              "status",
+              "triggered_at"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_order_report"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "broker_order_ref": {
+                "type": "string"
+              },
+              "side": {
+                "type": "string",
+                "enum": [
+                  "buy",
+                  "sell"
+                ]
+              },
+              "quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "triggered_at": {
+                "type": "string"
+              },
+              "trigger_price": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_before": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_after": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "rejection_reason": {
+                "type": "string"
+              },
+              "cancelled_quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "condition_leg": {
+                "type": "string",
+                "enum": [
+                  "take_profit",
+                  "stop_loss"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "const": "cancelled"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "broker_order_ref",
+              "side",
+              "quantity",
+              "status",
+              "triggered_at",
+              "cancelled_quantity"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_order_report"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "broker_order_ref": {
+                "type": "string"
+              },
+              "side": {
+                "type": "string",
+                "enum": [
+                  "buy",
+                  "sell"
+                ]
+              },
+              "quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "triggered_at": {
+                "type": "string"
+              },
+              "trigger_price": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_before": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_after": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "rejection_reason": {
+                "type": "string"
+              },
+              "cancelled_quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "condition_leg": {
+                "type": "string",
+                "enum": [
+                  "take_profit",
+                  "stop_loss"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "const": "rejected"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "broker_order_ref",
+              "side",
+              "quantity",
+              "status",
+              "triggered_at",
+              "rejection_reason"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_order_report"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "broker_order_ref": {
+                "type": "string"
+              },
+              "side": {
+                "type": "string",
+                "enum": [
+                  "buy",
+                  "sell"
+                ]
+              },
+              "quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "triggered_at": {
+                "type": "string"
+              },
+              "trigger_price": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_before": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "reference_price_after": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "rejection_reason": {
+                "type": "string"
+              },
+              "cancelled_quantity": {
+                "type": [
+                  "string",
+                  "integer",
+                  "number"
+                ]
+              },
+              "condition_leg": {
+                "type": "string",
+                "enum": [
+                  "take_profit",
+                  "stop_loss"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "broker_order_ref",
+              "side",
+              "quantity",
+              "status",
+              "triggered_at"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_reconcile"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "occurred_at": {
+                "type": "string"
+              },
+              "reconciliation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "occurred_at",
+              "reconciliation_id"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_sleep"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "direction": {
+                "type": "string",
+                "enum": [
+                  "buy",
+                  "sell"
+                ]
+              },
+              "sleeping": {
+                "type": "boolean"
+              },
+              "occurred_at": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "direction",
+              "sleeping",
+              "occurred_at",
+              "reason"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_terminate_request"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "occurred_at": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "occurred_at",
+              "reason"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "strategy_terminated"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "occurred_at": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "plan_id",
+              "occurred_at",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "invariants": [
+        "action_card.acceptance_never_changes_portfolio/v1",
+        "investment_execution_update.confirmed_ledger_only_changes_portfolio/v1",
+        "investment_execution_update.full_scope_reconciliation_required/v1"
+      ],
+      "level": "workflow_required",
+      "rationale": "manage-investment-lifecycle records each manual Execution and user-reported broker strategy transition through discriminated operations, preserves reported facts outside confirmed Portfolio Ledger truth, and requires full-scope reconciliation before a strategy is complete.",
+      "required_operations": {
+        "prepare": {
+          "required_outputs": [
+            {
+              "path": "id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "status",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "idempotency_key",
+              "schema": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            {
+              "path": "ledger_entry_ids",
+              "schema": {
+                "type": "array"
+              }
+            }
+          ]
+        },
+        "order": {
+          "required_outputs": [
+            {
+              "path": "id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "status",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "ledger_entry_ids",
+              "schema": {
+                "type": "array"
+              }
+            }
+          ]
+        },
+        "report_fill": {
+          "required_outputs": [
+            {
+              "path": "execution.id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "pending_ledger_entry.id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "pending_ledger_entry.status",
+              "schema": {
+                "const": "needs_confirmation",
+                "type": "string"
+              }
+            },
+            {
+              "path": "portfolio_changed",
+              "schema": {
+                "const": false,
+                "type": "boolean"
+              }
+            },
+            {
+              "path": "requires_confirmation",
+              "schema": {
+                "const": true,
+                "type": "boolean"
+              }
+            }
+          ]
+        },
+        "confirm_fill": {
+          "required_outputs": [
+            {
+              "path": "execution.id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "execution.status",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "confirmed_ledger_entry.id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "confirmed_ledger_entry.status",
+              "schema": {
+                "const": "confirmed",
+                "type": "string"
+              }
+            },
+            {
+              "path": "portfolio_changed",
+              "schema": {
+                "const": true,
+                "type": "boolean"
+              }
+            },
+            {
+              "path": "truth",
+              "schema": {
+                "const": "confirmed_ledger_replay",
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "cancel": {
+          "required_outputs": [
+            {
+              "path": "id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "status",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "ledger_entry_ids",
+              "schema": {
+                "type": "array"
+              }
+            }
+          ]
+        },
+        "strategy_create": {
+          "required_outputs": [
+            {
+              "path": "id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "plan_type",
+              "schema": {
+                "enum": [
+                  "priced_buy",
+                  "priced_sell",
+                  "bracket_exit",
+                  "moving_grid"
+                ],
+                "type": "string"
+              }
+            },
+            {
+              "path": "spec",
+              "schema": {
+                "type": "object"
+              }
+            },
+            {
+              "path": "broker_validity.sessions",
+              "schema": {
+                "enum": [
+                  5,
+                  20,
+                  60,
+                  180
+                ],
+                "type": "integer"
+              }
+            },
+            {
+              "path": "broker_validity.valid_until",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "idempotency_key",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "outstanding_orders",
+              "schema": {
+                "type": "array"
+              }
+            },
+            {
+              "path": "reported_execution_ids",
+              "schema": {
+                "type": "array"
+              }
+            },
+            {
+              "path": "reconciliation",
+              "schema": {
+                "type": [
+                  "object",
+                  "null"
+                ]
+              }
+            }
+          ]
+        },
+        "strategy_configured": {
+          "required_outputs": [
+            {
+              "path": "id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "broker_condition_ref",
+              "schema": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            {
+              "path": "broker_validity.sessions",
+              "schema": {
+                "enum": [
+                  5,
+                  20,
+                  60,
+                  180
+                ],
+                "type": "integer"
+              }
+            },
+            {
+              "path": "broker_validity.valid_until",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "strategy_activate": {
+          "required_outputs": [
+            {
+              "path": "id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "status",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "outstanding_orders",
+              "schema": {
+                "type": "array"
+              }
+            }
+          ]
+        },
+        "strategy_order_report": {
+          "required_outputs": [
+            {
+              "path": "id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "orders",
+              "schema": {
+                "type": "array"
+              }
+            },
+            {
+              "path": "outstanding_orders",
+              "schema": {
+                "type": "array"
+              }
+            },
+            {
+              "path": "reported_execution_ids",
+              "schema": {
+                "type": "array"
+              }
+            },
+            {
+              "path": "reported_order_execution_id",
+              "schema": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          ]
+        },
+        "strategy_terminate_request": {
+          "required_outputs": [
+            {
+              "path": "id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "status",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "outstanding_orders",
+              "schema": {
+                "type": "array"
+              }
+            }
+          ]
+        },
+        "strategy_terminated": {
+          "required_outputs": [
+            {
+              "path": "id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "status",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "outstanding_orders",
+              "schema": {
+                "type": "array"
+              }
+            }
+          ]
+        },
+        "strategy_etf_dividend": {
+          "required_outputs": [
+            {
+              "path": "id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "status",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "outstanding_orders",
+              "schema": {
+                "type": "array"
+              }
+            }
+          ]
+        },
+        "strategy_sleep": {
+          "required_outputs": [
+            {
+              "path": "id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "buy_direction_state",
+              "schema": {
+                "enum": [
+                  "active",
+                  "sleeping"
+                ],
+                "type": "string"
+              }
+            },
+            {
+              "path": "sell_direction_state",
+              "schema": {
+                "enum": [
+                  "active",
+                  "sleeping"
+                ],
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "strategy_exception": {
+          "required_outputs": [
+            {
+              "path": "id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "status",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "events",
+              "schema": {
+                "type": "array"
+              }
+            }
+          ]
+        },
+        "strategy_reconcile": {
+          "required_outputs": [
+            {
+              "path": "id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "status",
+              "schema": {
+                "const": "reconciled",
+                "type": "string"
+              }
+            },
+            {
+              "path": "outstanding_orders",
+              "schema": {
+                "type": "array"
+              }
+            },
+            {
+              "path": "reconciliation.reconciliation_id",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "path": "reconciliation.occurred_at",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      "required_outputs": [],
+      "workflows": [
+        "manage-investment-lifecycle"
+      ]
+    },
     "investment_workflow_context": {
       "errors": ["capability.input.invalid", "capability.output.invalid"],
       "input_schema": {
@@ -1580,6 +4063,28 @@
             "properties": { "view": { "const": "doctor", "type": "string" } },
             "required": ["view"],
             "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "limit": { "maximum": 500, "minimum": 1, "type": "integer" },
+              "status": {
+                "enum": ["draft", "presented", "accepted", "configured", "active", "sleeping", "termination_pending", "terminated", "reconciled", "exception", "expired", "cancelled"],
+                "type": "string"
+              },
+              "view": { "const": "execution_strategies", "type": "string" }
+            },
+            "required": ["view"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "plan_id": { "type": "string" },
+              "view": { "const": "execution_strategy", "type": "string" }
+            },
+            "required": ["view", "plan_id"],
+            "type": "object"
           }
         ]
       },
@@ -1588,7 +4093,7 @@
         "investment_workflow.run_success_is_not_delivery/v1"
       ],
       "level": "workflow_required",
-      "rationale": "manage-investment-companion reads the exact versioned Schedule, Run and Delivery state, recent history, delivery backlog and bounded system diagnostics; execution strategy views remain outside this workflow until the dedicated execution contract migration.",
+      "rationale": "manage-investment-companion reads exact versioned Schedule, Run and Delivery state; manage-investment-lifecycle reads execution strategy lists and exact plans through the same compatible context tool using an explicit plan_id.",
       "required_operations": {
         "deliveries": { "required_outputs": [] },
         "delivery": {
@@ -1615,6 +4120,22 @@
             { "path": "warnings", "schema": { "type": "array" } },
             { "path": "compatibility", "schema": { "type": "object" } },
             { "path": "status", "schema": { "type": "object" } }
+          ]
+        },
+        "execution_strategies": { "required_outputs": [] },
+        "execution_strategy": {
+          "required_outputs": [
+            { "path": "id", "schema": { "type": "string" } },
+            { "path": "plan_type", "schema": { "enum": ["priced_buy", "priced_sell", "bracket_exit", "moving_grid"], "type": "string" } },
+            { "path": "status", "schema": { "type": "string" } },
+            { "path": "spec", "schema": { "type": "object" } },
+            { "path": "broker_validity.sessions", "schema": { "enum": [5, 20, 60, 180], "type": "integer" } },
+            { "path": "broker_validity.valid_until", "schema": { "type": "string" } },
+            { "path": "orders", "schema": { "type": "array" } },
+            { "path": "outstanding_orders", "schema": { "type": "array" } },
+            { "path": "reported_execution_ids", "schema": { "type": "array" } },
+            { "path": "reconciliation", "schema": { "type": ["object", "null"] } },
+            { "path": "idempotency_key", "schema": { "type": "string" } }
           ]
         },
         "run": {
@@ -1649,7 +4170,7 @@
         }
       },
       "required_outputs": [],
-      "workflows": ["manage-investment-companion"]
+      "workflows": ["manage-investment-companion", "manage-investment-lifecycle"]
     },
     "investment_workflow_update": {
       "errors": [
