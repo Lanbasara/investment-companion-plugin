@@ -77,9 +77,12 @@
           }
         ]
       },
-      "invariants": ["investment_action_plan.risk_gate_is_veto_not_thesis/v1"],
+      "invariants": [
+        "investment_action_plan.risk_gate_is_veto_not_thesis/v1",
+        "investment_action_plan.portfolio_qualification_caps_precision/v1"
+      ],
       "level": "workflow_required",
-      "rationale": "decide-investment and manage-investment-lifecycle use deterministic portfolio and execution inputs for standard sizing or the separately qualified bounded lane; neither asks Risk Gate to judge the Thesis.",
+      "rationale": "decide-investment and manage-investment-lifecycle consume the provider's stable candidate Portfolio Qualification projection for portfolio and market precision, then combine it with the independent Risk Gate; neither workflow recreates qualification policy or asks Risk Gate to judge the Thesis.",
       "required_operations": {
         "bounded": {
           "required_outputs": [
@@ -98,7 +101,7 @@
             { "path": "action.account_id", "schema": { "type": "string" } },
             { "path": "action.asset_id", "schema": { "type": "string" } },
             { "path": "action.side", "schema": { "enum": ["buy", "sell"], "type": "string" } },
-            { "path": "action.quantity", "schema": { "type": "string" } },
+            { "path": "action.quantity", "schema": { "type": ["string", "null"] } },
             { "path": "action.price_range", "schema": { "type": "object" } },
             { "path": "action.valid_until", "schema": { "type": "string" } },
             { "path": "risk.status", "schema": { "enum": ["pass", "blocked"], "type": "string" } },
@@ -117,7 +120,28 @@
       },
       "required_outputs": [
         { "path": "schema", "schema": { "const": "investment-companion.portfolio-action-plan/v1", "type": "string" } },
-        { "path": "action_tier", "schema": { "enum": ["standard", "bounded"], "type": "string" } }
+        { "path": "action_tier", "schema": { "enum": ["standard", "bounded"], "type": "string" } },
+        { "path": "candidate_qualification.calculation_id", "schema": { "type": "string" } },
+        { "path": "candidate_qualification.account_calculation_id", "schema": { "type": "string" } },
+        { "path": "candidate_qualification.level", "schema": { "enum": ["unavailable", "directional_only", "range_ready", "preflight_ready"], "type": "string" } },
+        { "path": "candidate_qualification.allowed_uses", "schema": { "type": "array" } },
+        { "path": "candidate_qualification.blockers", "schema": { "type": "array" } },
+        { "path": "candidate_qualification.reason_codes", "schema": { "type": "array" } },
+        { "path": "candidate_qualification.required_actions", "schema": { "type": "array" } },
+        { "path": "candidate_qualification.as_of", "schema": { "type": "string" } },
+        { "path": "candidate_qualification.validity.status", "schema": { "const": "current_at_as_of", "type": "string" } },
+        { "path": "candidate_qualification.validity.valid_until", "schema": { "type": "string" } },
+        { "path": "candidate_qualification.validity.recalculate_on", "schema": { "type": "array" } },
+        { "path": "candidate_qualification.candidate.account_id", "schema": { "type": "string" } },
+        { "path": "candidate_qualification.candidate.asset_id", "schema": { "type": "string" } },
+        { "path": "candidate_qualification.candidate.direction", "schema": { "enum": ["buy", "sell"], "type": "string" } },
+        { "path": "candidate_qualification.candidate.quantity", "schema": { "type": ["string", "null"] } },
+        { "path": "candidate_qualification.candidate.reference_price", "schema": { "type": "string" } },
+        { "path": "candidate_qualification.candidate.price_range", "schema": { "type": "object" } },
+        { "path": "candidate_qualification.market_evidence.market_snapshot_id", "schema": { "type": ["string", "null"] } },
+        { "path": "candidate_qualification.market_evidence.fresh", "schema": { "type": "boolean" } },
+        { "path": "candidate_qualification.no_action_inferred", "schema": { "const": false, "type": "boolean" } },
+        { "path": "conditional_sizing_available", "schema": { "type": "boolean" } }
       ],
       "workflows": ["decide-investment", "manage-investment-lifecycle"]
     },
