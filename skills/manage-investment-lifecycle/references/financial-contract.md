@@ -14,7 +14,7 @@
 
 ## Decision 冻结
 
-`investment_decision_publish` 至少冻结 Investor Revision、Mandate Revision、Portfolio Calculation、Thesis Revision、知识截止时间、不行动方案、替代方案与失效条件。行动型 Decision 还必须引用通过的 Research Validation 和 Risk Gate Calculation。
+`investment_decision_publish` 至少冻结 Investor Revision、Mandate Revision、Portfolio Calculation、Thesis Revision、知识截止时间、不行动方案、替代方案与失效条件。行动型 Decision 还必须引用 Action Plan 与 Risk Gate 共用的当前 `preflight_ready` candidate Portfolio Qualification Calculation，以及通过的 Research Validation 和 Risk Gate Calculation；历史 Decision 保留当时资格 ID 与事实血缘，不用当前事实覆盖。
 
 ## 数据质量
 

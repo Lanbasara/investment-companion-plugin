@@ -21,7 +21,7 @@ Primary Investment Codex 对最终判断负责。推荐、用户选择、券商�
 4. 建立基准：始终比较“不行动”、用户提出的行动，以及至少一个真实可行的替代方案。现金和等待是正式选择，不是分析失败。
 5. 冻结市场事实：决策使用的价格、汇率和流动性观测使用 `investment_evidence_update(operation="market_snapshot")` 登记，不使用聊天中的暂存数字。
 6. 构建行动方案：涉及仓位、现金和交易影响时调用 `investment_action_plan`。全量对账日期已久但没有差异时，不得自动退化为“不行动”：缺少连续性确认则给仓位范围和条件化数量；用户确认无漏报并承诺持续报告后，记录 `continuity_confirm` 并生成具体方案。市场行情单独刷新，最终下单前始终核对券商 App 的可用现金和可用持仓。正式行动使用 `action_tier="standard"`；证据仅支持受限行动时使用 `action_tier="bounded"`，并提供券商实际支持的 `validity_sessions`。后者的上限和允许执行类型必须来自当前确认 Program，工具返回阻断时不得自行缩小数字后假装通过。首版受限通道不使用网格；网格只走完整研究资格的 standard 通道。
-7. 发布正式判断：使用 `investment_decision_publish` 冻结内容、知识截止、有效期、Thesis、来源、失效条件、不行动和替代方案。正式行动使用 `decision_kind="action"`；受限行动使用 `decision_kind="conditional_action"`。两者必须引用匹配等级且通过的 Research Validation 和 Risk Gate Calculation。
+7. 发布正式判断：使用 `investment_decision_publish` 冻结内容、知识截止、有效期、Thesis、来源、失效条件、不行动和替代方案。正式行动使用 `decision_kind="action"`；受限行动使用 `decision_kind="conditional_action"`。两者必须引用 Action Plan 返回的同一份当前 `preflight_ready` candidate Portfolio Qualification Calculation，以及匹配等级且通过的 Research Validation 和 Risk Gate Calculation；不得自行重算或替换资格 ID。watch 若引用较低资格，只能携带 `allowed_uses` 允许的数量精度，且不得进入 Action Card 队列。
 8. 维护行动闭环：只有 Decision 关闭了 qualified 机会的重大未知项，才通过 `$operate-investment-program` 推进 actionable 并用 `investment_action_update(operation="enqueue")` 进入用户队列。不得直接创建成交。
 
 材料性决策必须读取 [decision-standard.md](references/decision-standard.md)。
