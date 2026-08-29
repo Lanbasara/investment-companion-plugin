@@ -40,7 +40,7 @@ description: 维护个人投资事实账本、账户、资产、现金、持仓�
 - 定价买入和定价卖出都允许 `cross_up` 或 `cross_down`，不得根据名称擅自固定方向。止盈止损的延迟确认两侧分别计数。
 - 网格只按中金已确认规则解释：触发驱动基准价；仅资金不足或持仓不足废单不更新，其他情况更新；终止不撤销已触发未成交委托；ETF 分红后网格自动终止；“终止并清仓失败”行为未知，必须人工核对，不得补猜。
 - 网格的买方向休眠和卖方向休眠必须分别使用 `strategy_sleep(direction="buy"|"sell")` 记录，不能把单方向休眠写成整张策略暂停。
-- 条件单触发、委托与成交仍是不同事实。每次终止或 ETF 分红后，读取 `execution_strategy` 状态，核对未成交委托、成交和真实 Ledger；不得把券商条件单视为持仓自动同步。
+- 条件单触发、委托与成交仍是不同事实。先用 `investment_workflow_context(view="execution_strategies")` 找到计划，再用 `investment_workflow_context(view="execution_strategy", plan_id=...)` 读取精确状态。每次终止或 ETF 分红后都核对 `outstanding_orders`、`reported_execution_ids`、`reconciliation` 和真实 Ledger；不得把券商条件单视为持仓自动同步。
 - `strategy_order_report` 返回对应 `reported_order_execution_id`。真实成交必须继续用同一工具的 `report_fill` 与 `confirm_fill` 进入 confirmed Ledger；最终 `strategy_reconcile` 必须引用同账户、覆盖终止和全部订单之后的 full-scope matched `reconciliation_id`。
 
 ## 绩效与复盘
