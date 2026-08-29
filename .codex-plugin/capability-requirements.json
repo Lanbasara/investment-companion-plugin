@@ -4505,6 +4505,274 @@
       "required_outputs": [],
       "workflows": ["manage-investment-companion", "operate-investment-program"]
     },
+    "evaluation_context": {
+      "errors": ["capability.input.invalid", "capability.output.invalid"],
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": { "maximum": 100, "minimum": 1, "type": "integer" }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "invariants": [
+        "investment_review_publish.change_proposals_are_inert/v1",
+        "investment_review_publish.revisions_are_append_only/v1"
+      ],
+      "level": "workflow_required",
+      "rationale": "manage-investment-lifecycle restores objective Calculation summaries and immutable Review history; operate-investment-program reads the same results and inert Change Proposal boundary without consuming formulas or full audit records.",
+      "required_outputs": [
+        { "path": "schema", "schema": { "const": "investment-companion.evaluation-context/v1", "type": "string" } },
+        { "path": "as_of", "schema": { "type": "string" } },
+        { "path": "performance", "schema": { "type": "array" } },
+        { "path": "reviews", "schema": { "type": "array" } },
+        { "path": "research_reviews", "schema": { "type": "array" } },
+        { "path": "change_boundary.review_may_propose", "schema": { "const": true, "type": "boolean" } },
+        { "path": "change_boundary.review_may_apply_strategy_change", "schema": { "const": false, "type": "boolean" } },
+        { "path": "change_boundary.new_version_and_validation_required", "schema": { "const": true, "type": "boolean" } },
+        { "path": "change_boundary.review_history_is_append_only", "schema": { "const": true, "type": "boolean" } }
+      ],
+      "workflows": ["manage-investment-lifecycle", "operate-investment-program"]
+    },
+    "investment_performance_calculate": {
+      "errors": [
+        "capability.input.invalid",
+        "capability.output.invalid",
+        "investment_performance.valuation_required",
+        "investment_performance.benchmark_required"
+      ],
+      "input_schema": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "account_id": { "type": "string" },
+              "attribution_refs": { "items": { "type": "string" }, "type": "array", "uniqueItems": true },
+              "benchmark_end_value": { "type": ["string", "integer", "number"] },
+              "benchmark_mode": { "const": "compare", "type": "string" },
+              "benchmark_source_ref": { "type": "string" },
+              "benchmark_start_value": { "type": ["string", "integer", "number"] },
+              "end_prices": { "additionalProperties": {}, "type": "object" },
+              "period_basis": { "const": "start_exclusive_end_inclusive", "type": "string" },
+              "period_end": { "type": "string" },
+              "period_start": { "type": "string" },
+              "price_source_refs": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "start_prices": { "additionalProperties": {}, "type": "object" },
+              "trade_reference_prices": {
+                "additionalProperties": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "price": { "type": ["string", "integer", "number"] },
+                    "source_ref": { "type": "string" }
+                  },
+                  "required": ["price", "source_ref"],
+                  "type": "object"
+                },
+                "type": "object"
+              },
+              "valuation_points": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": { "type": "string" },
+                    "value": { "type": ["string", "integer", "number"] }
+                  },
+                  "required": ["at", "value"],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": ["benchmark_mode", "account_id", "period_start", "period_end", "period_basis", "start_prices", "end_prices", "valuation_points", "price_source_refs", "trade_reference_prices", "attribution_refs", "benchmark_start_value", "benchmark_end_value", "benchmark_source_ref"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "account_id": { "type": "string" },
+              "attribution_refs": { "items": { "type": "string" }, "type": "array", "uniqueItems": true },
+              "benchmark_mode": { "const": "unavailable", "type": "string" },
+              "benchmark_unavailable_reason": { "type": "string" },
+              "end_prices": { "additionalProperties": {}, "type": "object" },
+              "period_basis": { "const": "start_exclusive_end_inclusive", "type": "string" },
+              "period_end": { "type": "string" },
+              "period_start": { "type": "string" },
+              "price_source_refs": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "start_prices": { "additionalProperties": {}, "type": "object" },
+              "trade_reference_prices": {
+                "additionalProperties": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "price": { "type": ["string", "integer", "number"] },
+                    "source_ref": { "type": "string" }
+                  },
+                  "required": ["price", "source_ref"],
+                  "type": "object"
+                },
+                "type": "object"
+              },
+              "valuation_points": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": { "type": "string" },
+                    "value": { "type": ["string", "integer", "number"] }
+                  },
+                  "required": ["at", "value"],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": ["benchmark_mode", "account_id", "period_start", "period_end", "period_basis", "start_prices", "end_prices", "valuation_points", "price_source_refs", "trade_reference_prices", "attribution_refs", "benchmark_unavailable_reason"],
+            "type": "object"
+          }
+        ]
+      },
+      "invariants": ["investment_performance_calculate.outputs_are_kernel_calculated/v1"],
+      "level": "workflow_required",
+      "rationale": "manage-investment-lifecycle and operate-investment-program request an account-period Calculation from confirmed Ledger facts and explicit valuation, cash-flow boundary, benchmark, price-source, cost and attribution inputs; neither workflow supplies return or cost outputs.",
+      "required_operations": {
+        "compare": { "required_outputs": [] },
+        "unavailable": { "required_outputs": [] }
+      },
+      "required_outputs": [
+        { "path": "calculation_id", "schema": { "type": "string" } },
+        { "path": "period.start", "schema": { "type": "string" } },
+        { "path": "period.end", "schema": { "type": "string" } },
+        { "path": "time_basis.period_boundary", "schema": { "const": "start_exclusive_end_inclusive", "type": "string" } },
+        { "path": "time_basis.valuation", "schema": { "const": "point_in_time", "type": "string" } },
+        { "path": "account_id", "schema": { "type": "string" } },
+        { "path": "currency", "schema": { "type": "string" } },
+        { "path": "start_value", "schema": { "type": "string" } },
+        { "path": "end_value", "schema": { "type": "string" } },
+        { "path": "net_external_flow", "schema": { "type": "string" } },
+        { "path": "weighted_external_flow", "schema": { "type": "string" } },
+        { "path": "investment_gain_after_external_flows", "schema": { "type": "string" } },
+        { "path": "modified_dietz_return", "schema": { "type": ["string", "null"] } },
+        { "path": "benchmark_return", "schema": { "type": ["string", "null"] } },
+        { "path": "excess_return", "schema": { "type": ["string", "null"] } },
+        { "path": "transaction_cost", "schema": { "type": "string" } },
+        { "path": "slippage_cost", "schema": { "type": "string" } },
+        { "path": "total_cost", "schema": { "type": "string" } },
+        { "path": "maximum_drawdown", "schema": { "type": "string" } },
+        { "path": "external_flows", "schema": { "type": "array" } },
+        { "path": "attribution.reference_ids", "schema": { "type": "array" } },
+        { "path": "attribution.status", "schema": { "enum": ["linked", "insufficient_evidence"], "type": "string" } },
+        { "path": "benchmark.mode", "schema": { "enum": ["compare", "unavailable"], "type": "string" } },
+        { "path": "benchmark.return", "schema": { "type": ["string", "null"] } },
+        { "path": "costs.fees_and_taxes", "schema": { "type": "string" } },
+        { "path": "costs.slippage", "schema": { "type": "string" } },
+        { "path": "costs.total", "schema": { "type": "string" } },
+        { "path": "caveats", "schema": { "type": "array" } }
+      ],
+      "workflows": ["manage-investment-lifecycle", "operate-investment-program"]
+    },
+    "investment_review_publish": {
+      "errors": [
+        "capability.input.invalid",
+        "capability.output.invalid",
+        "investment_review.calculation_lineage_required",
+        "investment_review.revision_conflict",
+        "investment_review.automatic_change_forbidden"
+      ],
+      "input_schema": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "calculation_ids": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "conclusion": { "enum": ["continue", "revise", "stop", "insufficient_evidence"], "type": "string" },
+              "content": { "type": "string" },
+              "historical_refs": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "knowledge_cutoff": { "type": "string" },
+              "operation": { "const": "create", "type": "string" },
+              "proposed_changes": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "change": { "type": "string" },
+                    "reason": { "type": "string" },
+                    "target_id": { "type": "string" },
+                    "target_type": { "enum": ["thesis", "strategy", "policy", "research_pipeline"], "type": "string" },
+                    "validation_required": { "const": true, "type": "boolean" }
+                  },
+                  "required": ["target_type", "target_id", "change", "reason", "validation_required"],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "source_refs": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "subject": { "additionalProperties": true, "type": "object" }
+            },
+            "required": ["operation", "subject", "content", "conclusion", "calculation_ids", "source_refs", "historical_refs", "knowledge_cutoff"],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "calculation_ids": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "conclusion": { "enum": ["continue", "revise", "stop", "insufficient_evidence"], "type": "string" },
+              "content": { "type": "string" },
+              "historical_refs": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "knowledge_cutoff": { "type": "string" },
+              "operation": { "const": "supersede", "type": "string" },
+              "proposed_changes": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "change": { "type": "string" },
+                    "reason": { "type": "string" },
+                    "target_id": { "type": "string" },
+                    "target_type": { "enum": ["thesis", "strategy", "policy", "research_pipeline"], "type": "string" },
+                    "validation_required": { "const": true, "type": "boolean" }
+                  },
+                  "required": ["target_type", "target_id", "change", "reason", "validation_required"],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "review_id": { "type": "string" },
+              "source_refs": { "items": { "type": "string" }, "minItems": 1, "type": "array", "uniqueItems": true },
+              "subject": { "additionalProperties": true, "type": "object" },
+              "supersedes_revision_id": { "type": "string" },
+              "supersession_reason": { "type": "string" }
+            },
+            "required": ["operation", "subject", "content", "conclusion", "calculation_ids", "source_refs", "historical_refs", "knowledge_cutoff", "review_id", "supersedes_revision_id", "supersession_reason"],
+            "type": "object"
+          }
+        ]
+      },
+      "invariants": [
+        "investment_review_publish.change_proposals_are_inert/v1",
+        "investment_review_publish.revisions_are_append_only/v1"
+      ],
+      "level": "workflow_required",
+      "rationale": "manage-investment-lifecycle and operate-investment-program publish only Calculation-backed Review revisions; supersession names the current historical revision and every Change Proposal remains inert pending a separately validated Thesis, Investment Policy or Strategy Version change.",
+      "required_operations": {
+        "create": { "required_outputs": [] },
+        "supersede": { "required_outputs": [] }
+      },
+      "required_outputs": [
+        { "path": "review.id", "schema": { "type": "string" } },
+        { "path": "review.subject", "schema": { "type": "object" } },
+        { "path": "review.current_revision_id", "schema": { "type": "string" } },
+        { "path": "revision.id", "schema": { "type": "string" } },
+        { "path": "revision.object_id", "schema": { "type": "string" } },
+        { "path": "revision.revision", "schema": { "type": "integer" } },
+        { "path": "revision.parent_id", "schema": { "type": ["string", "null"] } },
+        { "path": "revision.knowledge_cutoff", "schema": { "type": "string" } },
+        { "path": "revision.calculation_ids", "schema": { "type": "array" } },
+        { "path": "conclusion", "schema": { "enum": ["continue", "revise", "stop", "insufficient_evidence"], "type": "string" } },
+        { "path": "change_proposal.status", "schema": { "enum": ["proposed", "none"], "type": "string" } },
+        { "path": "change_proposal.changes", "schema": { "type": "array" } },
+        { "path": "change_proposal.requires_new_version", "schema": { "type": "boolean" } },
+        { "path": "change_proposal.automatic_application", "schema": { "const": false, "type": "boolean" } },
+        { "path": "history_preserved", "schema": { "const": true, "type": "boolean" } },
+        { "path": "automatic_changes_applied", "schema": { "const": false, "type": "boolean" } }
+      ],
+      "workflows": ["manage-investment-lifecycle", "operate-investment-program"]
+    },
     "portfolio_context": {
       "errors": [
         "capability.input.invalid",

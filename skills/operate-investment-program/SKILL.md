@@ -39,7 +39,7 @@ description: 统一管理“今天做什么”、投资计划、机会漏斗、�
 ## 日、周、月输出
 
 - 使用 `investment_brief_update(operation="publish")` 冻结日/周/月简报。`no_action` 只有在 Production Doctor 全绿、当日研究产物新鲜、Research Work 无未完成项且没有有效行动队列时成立；`action` 必须引用有效队列项。
-- 月度先用 `operation="metrics_calculate"` 冻结过程指标，再用 `investment_performance_calculate` 得到真实投资结果，最后用 `operation="scorecard_publish"` 发布可追溯记分卡。模型不能手填绩效数值。
+- 月度先用 `operation="metrics_calculate"` 冻结过程指标，再用 `investment_performance_calculate` 按账户、`start_exclusive_end_inclusive` 期间、价格来源、基准模式、成交参考价与历史归因得到真实结果，最后用 `operation="scorecard_publish"` 引用 Calculation 发布记分卡。收益、现金流调整、费用、滑点和回撤只读取工具输出。
 - 调度触发的用户结果使用 `investment_delivery_update(operation="prepare")`；摘要使用 `digest_send`。Run 成功不等于用户已收到结果。
 
 ## 输出给用户

@@ -45,6 +45,8 @@ description: 维护个人投资事实账本、账户、资产、现金、持仓�
 
 ## 绩效与复盘
 
-- 客观期间结果使用 `investment_performance_calculate`，明确期初期末价格、基准、现金流和来源。
-- 解释与修订提案使用 `investment_review_publish`。Review 只能提出新版本，不能改写历史或在线调参。
+- 客观期间结果使用 `investment_performance_calculate`。固定 `period_basis="start_exclusive_end_inclusive"`，传入账户、期间、期初期末价格、估值点、价格来源、成交参考价和归因引用；现金流与费用由 confirmed Ledger 派生，收益、费用、滑点和回撤只读取返回的 Calculation。
+- 有可靠基准时用 `benchmark_mode="compare"` 并同时提供起止值与来源；无法取得时用 `benchmark_mode="unavailable"` 明确原因。缺失持仓价格时先补齐估值来源，不生成期间收益。
+- 首次复盘使用 `investment_review_publish(operation="create")`；修订时使用 `operation="supersede"`，引用当前 `review_id` 与 `supersedes_revision_id`。两种调用都必须提供 Calculation、来源、历史引用和 `knowledge_cutoff`。
+- Review revision 只追加历史；Change Proposal 的 `automatic_application=false`。需要改变 Thesis、Investment Policy 或 Strategy Version 时，另行创建并验证新版本。
 - 每次输出明确区分：用户确认事实、外部事实、确定性计算、模型解释、假设和未知。
